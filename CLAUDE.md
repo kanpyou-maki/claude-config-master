@@ -1,73 +1,74 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working in this project.
+Claude Code の作業指示。**常に日本語で応答すること。**
+セッション開始時は `PROJECT_STATUS.md` を最初に読んで状態を復元すること。
 
-## Language
+## ナビゲーション
 
-Always respond in Japanese.
+| ドキュメント | 内容 |
+|------------|------|
+| [ARCHITECTURE.md](./ARCHITECTURE.md) | ディレクトリ構造・依存ルール・アーキテクチャ規則 |
+| [docs/design.md](./docs/design.md) | 設計詳細・コンポーネント仕様・開発フロー詳細 |
+| [docs/prd.md](./docs/prd.md) | 要件・ユーザーストーリー |
+| [docs/golden-rules.md](./docs/golden-rules.md) | 不変の品質原則（GC エージェントが検証） |
+| [docs/QUALITY_SCORE.md](./docs/QUALITY_SCORE.md) | 品質スコア・ギャップ追跡 |
+| [docs/PLANS.md](./docs/PLANS.md) | 実行プラン一覧 |
+| [docs/design-docs/core-beliefs.md](./docs/design-docs/core-beliefs.md) | コーディング原則・エージェントファースト設計思想 |
+| [PROJECT_STATUS.md](./PROJECT_STATUS.md) | 現在の進捗状態（毎回更新） |
 
-## Development Workflow
+## 開発ワークフロー
 
-This project follows a **Discussion → Document → TDD** cycle. Never skip phases.
+**Discussion → Document → TDD** のサイクルで進める。フェーズのスキップ禁止。
 
-### Phase 1: Discussion
-- Explore ideas, clarify requirements, evaluate trade-offs with the user
-- Do not write code until requirements and approach are agreed upon
-- Use the `architect` agent for system design decisions
-- Use the `planner` agent to break down the agreed approach into steps
+| フェーズ | 内容 | 使用エージェント |
+|---------|------|----------------|
+| 1. 議論 | 要件整理・方針確定 | `architect`, `planner` |
+| 2. ドキュメント | PRD・Design Doc・ADR 作成 | `doc-updater` |
+| 3. 実装 | TDD（RED→GREEN→REFACTOR）| `tdd-guide`, `code-reviewer` |
+| 4. メンテナンス | 技術負債解消・GC | `refactor-cleaner`, `gc-agent` |
 
-### Phase 2: Documentation
-- Use the `doc-updater` agent to produce PRD, Design Doc, and ADRs from the discussion
-- Code must not start until the user has reviewed and approved the documents
-- Place documents in `docs/` (PRD → `docs/prd.md`, Design Doc → `docs/design.md`, ADRs → `docs/adr/ADR-NNN-title.md`)
+詳細: [docs/design.md § 2.1](./docs/design.md)
 
-### Phase 3: Implementation (TDD)
-- Use the `tdd-guide` agent to enforce test-first development
-- Cycle: RED (write failing test) → GREEN (minimal implementation) → REFACTOR
-- Minimum 80% coverage required before a task is considered complete
-- Use the `code-reviewer` agent after every meaningful change
-- Use the `security-reviewer` agent when touching auth, APIs, or user input
+## エージェントが直接使える標準ツール
 
-### Phase 4: Maintenance
-- Use the `refactor-cleaner` agent for dead code removal and deduplication
-- Keep documents in `docs/` updated when architecture changes
+以下のツールは人間の CLI コピペ不要で Claude が直接実行できる。積極的に活用すること。
 
-## Project Status Management
+| ツール | 用途 |
+|--------|------|
+| `npm test` | テスト実行 |
+| `node hooks/arch-lint.js` | アーキテクチャ規則検証 |
+| `node hooks/structure-test.js` | 構造整合性検証 |
+| `gh pr create` / `gh pr list` | PR の作成・確認 |
+| `git log --oneline -20` | 直近の変更履歴確認 |
+| スキル (`skills/*/SKILL.md`) | review-loop、bootstrap 等の手順 |
 
-**MANDATORY**: Keep `PROJECT_STATUS.md` up to date throughout every session.
+## プロジェクト状態管理
 
-- Update the file after every completed task and every phase transition
-- The goal is always-accurate sync between Claude and the user: "what is done, what is in progress, what is next"
-- At session start, read `PROJECT_STATUS.md` first to restore context
-- At session end (or after each major milestone), write back the updated status
+`PROJECT_STATUS.md` をタスク完了・フェーズ移行のたびに更新すること。
 
-## Available Agents
+## エージェント一覧
 
-| Agent | Role | Typical Trigger |
-|-------|------|----------------|
-| `architect` | System design, trade-off analysis, ADR drafting | Phase 1 — design decisions |
-| `planner` | Feature breakdown into actionable steps | Phase 1 — after approach is agreed |
-| `doc-updater` | Create/update PRD, Design Doc, ADRs | Phase 2 — documentation |
-| `tdd-guide` | TDD workflow, test scaffolding, coverage | Phase 3 — all coding |
-| `code-reviewer` | Code quality, patterns, best practices | Phase 3 — after changes |
-| `security-reviewer` | OWASP Top 10, secrets, access control | Phase 3 — security-sensitive code |
-| `refactor-cleaner` | Dead code, duplicates, dependency cleanup | Phase 4 — maintenance |
+### 開発サポート
 
-## Coding Principles
+| エージェント | 役割 | 起動トリガー |
+|-------------|------|------------|
+| `architect` | システム設計・ADR 起草 | Phase 1 — 設計判断 |
+| `planner` | タスク分解・実行プラン作成 | Phase 1 — 方針合意後 |
+| `doc-updater` | PRD・Design Doc・ADR 作成 | Phase 2 — ドキュメント化 |
+| `tdd-guide` | TDD ワークフロー・テスト設計 | Phase 3 — コーディング |
+| `code-reviewer` | コード品質・パターン確認（アドバイザリ）| Phase 3 — 参考意見 |
+| `refactor-cleaner` | 技術負債・重複除去 | Phase 4 — メンテナンス |
+| `gc-agent` | 黄金原則逸脱検知・修正 PR 作成 | Phase 4 — 定期実行 |
 
-- **Tests first**: never write implementation before a failing test exists
-- **Small files**: prefer many small focused files over large ones (aim for <300 lines)
-- **Immutability**: prefer spread/map/filter over direct mutation
-- **No debug code**: remove all `console.log` before marking a task complete
-- **Parameterized queries**: never concatenate user input into SQL or shell commands
-- **Env vars**: never hardcode secrets; always use environment variables
+### レビュアー（Ralph Wiggum ループ）
 
-## Document Templates
+PR 作成前に `skills/review-loop/SKILL.md` の手順で全員を通過させること。
 
-When the `doc-updater` agent creates documents, use these structures:
-
-**PRD** (`docs/prd.md`): Problem statement · User stories · Success metrics · Out of scope
-
-**Design Doc** (`docs/design.md`): Overview · Architecture · Component design · Data models · Trade-offs · Open questions
-
-**ADR** (`docs/adr/ADR-NNN-title.md`): Context · Decision · Consequences (positive/negative) · Alternatives considered · Status
+| エージェント | ステージ | 審査観点 |
+|-------------|---------|---------|
+| `self-reviewer` | Stage 0 | 実装の自己批判的評価 |
+| `arch-reviewer` | Stage 1 | アーキテクチャ規則（ARCH-001〜005）|
+| `style-reviewer` | Stage 1 | コーディングスタイル・命名・debug コード |
+| `test-reviewer` | Stage 1 | テストカバレッジ≥80%・独立性 |
+| `security-reviewer` | Stage 2 | OWASP Top 10・シークレット漏洩 |
+| `docs-reviewer` | Stage 2 | 実装↔ドキュメント整合性・ADR 最新性 |

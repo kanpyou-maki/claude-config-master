@@ -7,6 +7,15 @@ description: Pre-PR quality gate. Run after completing a feature or significant 
 
 Run this before creating any PR or marking a task complete. Work through each phase in order; stop and fix before continuing if a phase fails.
 
+## Phase 0: ハーネス整合性チェック（ハーネスエンジニアリング適用済みプロジェクトのみ）
+
+```bash
+node .claude/hooks/structure-test.js
+echo '{}' | node .claude/hooks/arch-lint.js 2>&1
+```
+
+エラーがあれば STOP。アプリケーションの検証に入る前に、ハーネス自体が正しく機能していることを確認する。
+
 ## Phase 1: Build
 
 **TypeScript / Node.js**
