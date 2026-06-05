@@ -3,6 +3,9 @@
 Claude Code の設定テンプレート集です。
 「議論 → ドキュメント → TDD」という開発スタイルに最適化されたエージェント・設定ファイルを管理しています。
 
+** ハーネスエンジニアリング版はこちら(まだ試運転中なのでマージしていません) **
+[feat/harness-engineering](https://github.com/kanpyou-maki/claude-config-master/tree/feat/harness-engineering)
+
 ## このリポジトリの目的
 
 新しいプロジェクトを始めるとき、このリポジトリから必要なファイルをコピーするだけで Claude Code の環境が整います。
