@@ -72,9 +72,13 @@ cd /path/to/claude-config-master
 ./install.sh typescript /path/to/your-project
 ./install.sh python     /path/to/your-project
 ./install.sh both       /path/to/your-project
+
+# 既存プロジェクトを master の最新版で更新
+./install.sh update typescript /path/to/your-project
 ```
 
 スクリプトは rules・skills・hooks・settings.json・docs スケルトンを対象プロジェクトへ展開します。
+`update` モードでは新規ファイルの追加と hooks の更新のみ行い、既存ファイルは上書きしません。
 
 ### 2. テンプレートファイルをコピーする
 
@@ -147,6 +151,8 @@ PR 作成前に `skills/review-loop/SKILL.md` の手順で全員を通過させ�
 |--------|------|
 | `review-loop` | Ralph Wiggum ループ — PR 作成前の全レビュアー通過手順 |
 | `bootstrap` | 新規プロジェクトの自律的初期化（install.sh 後に実行）|
+| `sync-upstream` | プロジェクトの改善を master へ PR として反映 |
+| `sync-downstream` | master の更新をプロジェクトへ取り込む |
 | `verification-loop` | PR 前の品質ゲート（ビルド・型チェック・lint・テスト）|
 | `database-migrations` | DB マイグレーション安全パターン |
 | `python-patterns` | Python イディオム・並行処理・パッケージ構成 |
