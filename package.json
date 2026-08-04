@@ -4,8 +4,8 @@
   "description": "Claude Code configuration template with harness engineering",
   "scripts": {
     "test": "node --test 'test/**/*.test.js'",
-    "lint": "node hooks/arch-lint.js",
-    "structure-test": "node hooks/structure-test.js"
+    "lint": "node .claude/hooks/arch-lint.js",
+    "structure-test": "node .claude/hooks/structure-test.js"
   },
   "engines": {
     "node": ">=18.0.0"

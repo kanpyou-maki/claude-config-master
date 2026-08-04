@@ -1,6 +1,8 @@
 # 実行プラン一覧 (Plans Index)
 
 実行プランの全インデックス。`planner` エージェントがプランを作成・管理する。
+新規プランは [exec-plans/active/_template.md](./exec-plans/active/_template.md) を複製して作成する。
+ドキュメント（PRD・Design Doc・ADR）のテンプレートは [references/doc-templates.md](./references/doc-templates.md) を参照。
 
 ## 進行中
 
@@ -16,5 +18,5 @@ _（なし）_
 
 | # | 負債内容 | 影響度 | 登録日 |
 |---|---------|--------|--------|
-| TD-01 | `hooks/quality-gate.js` のテストが存在しない | 中 | 2026-06-05 |
+| TD-01 | `.claude/hooks/quality-gate.js` のテストが存在しない | 中 | 2026-06-05 |
 | TD-02 | `install.sh` でのエラーハンドリングが不十分 | 低 | 2026-06-05 |

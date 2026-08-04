@@ -3,7 +3,7 @@
 実装完了後、PR 作成前に全レビュアーを通過させるオーケストレーション手順。
 **全レビュアーの合格を得るまでループを抜けられない。**
 
-参考: [docs/design.md § 7](../../docs/design.md), [ADR-003](../../docs/adr/ADR-003-reviewer-agent-system.md)
+参考: [docs/golden-rules.md](../../../docs/golden-rules.md)（審査基準の原典）。設計の経緯は master の docs/design.md § 7 と ADR-003 を参照。
 
 ---
 
@@ -125,18 +125,19 @@ EOF
 
 | 繰り返しパターン | 根本原因 | 改善対象 |
 |----------------|---------|---------|
-| 同じ ARCH 規則を繰り返し違反する | 自動検出の漏れ | `hooks/arch-lint.js` にチェックを追加 |
-| 同じスタイル問題が繰り返し出る | ガードレール不足 | `hooks/arch-lint.js` で機械的に強制する |
-| 同じ種類のエッジケースを常に見落とす | テスト指針の不足 | `agents/test-reviewer.md` または `rules/*/testing.md` を更新 |
-| ドキュメントの同じ整合性問題が出る | ドキュメント構造の問題 | `agents/docs-reviewer.md` または `docs/` 構造を改善 |
-| セキュリティの同じ指摘が繰り返される | ガードレール不足 | `hooks/arch-lint.js` に静的チェックを追加 |
+| 同じ ARCH 規則を繰り返し違反する | 自動検出の漏れ | `.claude/hooks/arch-lint.js` にチェックを追加 |
+| 同じスタイル問題が繰り返し出る | ガードレール不足 | `.claude/hooks/arch-lint.js` で機械的に強制する |
+| 同じ種類のエッジケースを常に見落とす | テスト指針の不足 | `.claude/agents/test-reviewer.md` または `.claude/rules/*/testing.md` を更新 |
+| ドキュメントの同じ整合性問題が出る | ドキュメント構造の問題 | `.claude/agents/docs-reviewer.md` または `docs/` 構造を改善 |
+| セキュリティの同じ指摘が繰り返される | ガードレール不足 | `.claude/hooks/arch-lint.js` に静的チェックを追加 |
 
 ### 処理フロー
 
 1. BLOCK のパターンを上表で分類する
-2. **実装の修正**（当面の問題を解決）と**改善 PR**（根本原因を解消）を並行して進める
-3. 改善 PR には含める: 何が繰り返し摩擦を起こしていたか・どのファイルを改善するか・改善後に同じ摩擦が起きにくくなる理由
-4. 改善 PR マージ後、元のタスクを再実行して摩擦が解消されたことを確認する
+2. **`docs/friction-log.md` にエントリを追加する**（FRIC-NNN。何が・なぜ繰り返すか・改善候補）
+3. **実装の修正**（当面の問題を解決）を先に進め、ハーネスの改善は `improve-harness` スキル（`.claude/skills/improve-harness/SKILL.md`）で行う
+4. 改善が master にも有効な汎用的なものであれば、`sync-upstream` スキルで master への還元を提案する
+5. 改善後、元のタスクを再実行して摩擦が解消されたことを確認する
 
 **原則: 摩擦はリポジトリを改善するチャンスである。**
 

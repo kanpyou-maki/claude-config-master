@@ -41,7 +41,7 @@
 |----------------------|---------------------|
 | アーキテクチャ上の合意・判断 | `docs/adr/` |
 | 設計の背景・制約・トレードオフ | `docs/design.md`, `docs/design-docs/` |
-| チームの規範・コーディング方針 | `rules/`, `docs/design-docs/core-beliefs.md` |
+| チームの規範・コーディング方針 | `.claude/rules/`, `docs/design-docs/core-beliefs.md` |
 | ライブラリ選定の理由 | `docs/adr/` または `docs/design.md` |
 | 進行中・完了した計画 | `docs/exec-plans/` |
 
@@ -140,6 +140,6 @@ hooks/ の linter に昇格（ARCH-NNN として自動強制）
 
 ## 参考
 
-- [docs/design.md](../design.md) — 設計詳細
 - [docs/golden-rules.md](../golden-rules.md) — 黄金原則（機械的に検証される不変条件）
 - [ARCHITECTURE.md](../../ARCHITECTURE.md) — 依存方向ルール
+- 設計の経緯は各プロジェクトの `docs/design.md`・`docs/adr/` を参照（master では claude-config-master の docs/design.md）

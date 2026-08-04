@@ -31,8 +31,8 @@ model: sonnet
 ### デバッグコード禁止 [HIGH]
 
 ```bash
-# console.log が hooks/ や src/ に残っていないか
-grep -rn "console\.log" hooks/ src/ 2>/dev/null | grep -v ".test."
+# console.log が .claude/hooks/ や src/ に残っていないか
+grep -rn "console\.log" .claude/hooks/ src/ 2>/dev/null | grep -v ".test."
 ```
 
 残存している場合は BLOCK。`console.error` / `console.warn` は適切なエラーハンドリングとして許容。
@@ -61,10 +61,10 @@ find . -name "*.ts" -o -name "*.js" -o -name "*.py" | \
 
 ### 外部依存の制限 [HIGH]
 
-`hooks/` 内の `.js` ファイルに `require()` で Node.js 標準ライブラリ以外を読み込んでいないか確認:
+`.claude/hooks/` 内の `.js` ファイルに `require()` で Node.js 標準ライブラリ以外を読み込んでいないか確認:
 
 ```bash
-grep -rn "require(" hooks/ | grep -v "require('node:" | grep -v 'require("node:'
+grep -rn "require(" .claude/hooks/ | grep -v "require('node:" | grep -v 'require("node:'
 ```
 
 `fs`, `path`, `child_process`, `assert`, `os` 等の組み込みモジュールは許容。`node_modules` 経由の外部パッケージは BLOCK。
@@ -75,7 +75,7 @@ grep -rn "require(" hooks/ | grep -v "require('node:" | grep -v 'require("node:'
 
 ## 参考
 
-- [docs/golden-rules.md](../docs/golden-rules.md) — G-06〜G-09
-- [docs/design-docs/core-beliefs.md](../docs/design-docs/core-beliefs.md) — コーディング原則
-- [rules/common/coding-style.md](../rules/common/coding-style.md) — 言語共通スタイル
-- [skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御
+- [docs/golden-rules.md](../../docs/golden-rules.md) — G-06〜G-09
+- [docs/design-docs/core-beliefs.md](../../docs/design-docs/core-beliefs.md) — コーディング原則
+- [.claude/rules/common/coding-style.md](../rules/common/coding-style.md) — 言語共通スタイル
+- [.claude/skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御

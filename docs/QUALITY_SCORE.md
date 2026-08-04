@@ -1,7 +1,7 @@
 # 品質スコア (Quality Score)
 
 各ドメイン・アーキテクチャ層の品質状態を追跡するファイル。
-`agents/gc-agent.md` がフェーズ完了時および定期実行時に更新する。
+`.claude/agents/gc-agent.md` がフェーズ完了時および定期実行時に更新する。
 
 **最終更新:** 2026-06-05（全フェーズ完了・PDF 全章対応済み）
 
@@ -38,10 +38,10 @@
 
 | 対象 | テスト数 | 目標 | 状態 |
 |------|---------|------|------|
-| `hooks/arch-lint.js` | 28テスト | 80% | ✅ 達成 |
-| `hooks/structure-test.js` | 17テスト | 80% | ✅ 達成 |
+| `.claude/hooks/arch-lint.js` | 28テスト | 80% | ✅ 達成 |
+| `.claude/hooks/structure-test.js` | 17テスト | 80% | ✅ 達成 |
 | `install.sh` (smoke test) | 9テスト | — | ✅ 達成 |
-| `hooks/quality-gate.js` | 0テスト | 80% | 🟡 TD-01 として記録済み |
+| `.claude/hooks/quality-gate.js` | 0テスト | 80% | 🟡 TD-01 として記録済み |
 
 **合計: 54/54 テスト通過**
 
@@ -79,4 +79,4 @@
 
 | # | ギャップ | 優先度 | 備考 |
 |---|---------|--------|------|
-| GAP-01 | `hooks/quality-gate.js` のテストなし | 中 | TD-01。次 GC サイクルで検討 |
+| GAP-01 | `.claude/hooks/quality-gate.js` のテストなし | 中 | TD-01。次 GC サイクルで検討 |

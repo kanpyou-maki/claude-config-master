@@ -55,18 +55,23 @@ model: sonnet
 
 ### 1. テスト実行と確認
 
+テストコマンドは `.claude/harness.json` から取得する（`npm test` 等のハードコード禁止。言語によってコマンドが異なる）:
+
 ```bash
-# テストを実行し、結果を確認する
-npm test 2>&1
+TEST_CMD=$(node -pe "require('./.claude/harness.json').commands.test")
+bash -c "$TEST_CMD" 2>&1
 ```
+
+`.claude/harness.json` が存在しない場合は package.json / pyproject.toml からテストコマンドを推定し、判明した内容で harness.json の作成を提案する。
 
 失敗があれば **2回再実行**して結果を比較する。一貫して失敗なら BLOCK、不安定ならフレーク判定。
 
 ### 2. カバレッジ確認
 
 ```bash
-# カバレッジ付きで実行（設定がある場合）
-npm test -- --coverage 2>&1 || npm test 2>&1
+# カバレッジコマンドが定義されていればそれを使う（なければ通常のテストコマンド）
+COV_CMD=$(node -pe "const c=require('./.claude/harness.json').commands; c.coverage || c.test")
+bash -c "$COV_CMD" 2>&1
 ```
 
 カバレッジが計測できない場合は、変更されたファイルと対応するテストファイルを手動で確認し、主要なパスがカバーされているか目視検査する。
@@ -100,6 +105,6 @@ npm test -- --coverage 2>&1 || npm test 2>&1
 
 ## 参考
 
-- [docs/golden-rules.md](../docs/golden-rules.md) — G-06（カバレッジ ≥80%）
-- [rules/common/testing.md](../rules/common/testing.md) — テスト方針
-- [skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御
+- [docs/golden-rules.md](../../docs/golden-rules.md) — G-06（カバレッジ ≥80%）
+- [.claude/rules/common/testing.md](../rules/common/testing.md) — テスト方針
+- [.claude/skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御

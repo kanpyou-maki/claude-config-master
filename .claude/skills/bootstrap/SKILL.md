@@ -3,7 +3,7 @@
 `install.sh` によるスキャフォールド展開後、Claude が自律的にギャップを検出・修正・カスタマイズするスキル。
 人間が静的テンプレートをそのまま使うのではなく、**プロジェクト固有の文脈をリポジトリに書き込む**ことが目的。
 
-参考: [docs/design-docs/core-beliefs.md](../../docs/design-docs/core-beliefs.md) — 原則 6
+参考: [docs/design-docs/core-beliefs.md](../../../docs/design-docs/core-beliefs.md) — 原則 6
 
 ---
 
@@ -47,7 +47,7 @@ ls -la CLAUDE.md ARCHITECTURE.md PROJECT_STATUS.md docs/prd.md docs/design.md 2>
 | プロジェクト名・目的 | 人間への確認 or README.md | 「社内勤怠管理 API」 |
 | 技術スタック | package.json, pyproject.toml, 既存コード | TypeScript + Node.js + PostgreSQL |
 | 主要ディレクトリ | `ls -la` | src/, tests/, infra/ |
-| テストコマンド | package.json scripts | `npm test` |
+| テストコマンド | package.json scripts / pyproject.toml | `npm test`, `pytest` |
 | 既存の CI 設定 | .github/workflows/, .gitlab-ci.yml | GitHub Actions |
 
 ---
@@ -93,7 +93,20 @@ find . -maxdepth 2 -type d | grep -v node_modules | grep -v .git | sort
 - [ ] PRD 作成 (docs/prd.md)
 ```
 
-### 2-4. settings.json のフックパス検証
+### 2-4. harness.json の調整
+
+`.claude/harness.json` は install.sh が言語別の既定値で生成している。
+実際のプロジェクトのコマンドに合わせて調整する:
+
+```bash
+cat .claude/harness.json
+```
+
+- `commands.test` が実際のテストコマンドと一致しているか（package.json scripts / pyproject.toml / Makefile と照合）
+- lint・typecheck・coverage 等、プロジェクトに存在するコマンドを追記する
+- エージェントはコマンドをハードコードせずこのファイルを参照するため、ここが唯一の正とする
+
+### 2-5. settings.json のフックパス検証
 
 ```bash
 node .claude/hooks/arch-lint.js 2>&1
@@ -101,7 +114,7 @@ node .claude/hooks/arch-lint.js 2>&1
 
 ARCH-004 違反（存在しないフックへの参照）があれば修正する。
 
-### 2-5. docs/ スケルトンの補完
+### 2-6. docs/ スケルトンの補完
 
 `docs/` 配下に不足しているファイルがあれば作成する:
 - `docs/QUALITY_SCORE.md` が空テンプレートのままなら、初期スコアを記入する
@@ -165,5 +178,6 @@ Co-Authored-By: Claude <noreply@anthropic.com>"
 - [ ] `echo '{}' | node .claude/hooks/arch-lint.js` が違反ゼロ
 - [ ] `CLAUDE.md` がプロジェクト固有の内容になっている（テンプレートのまま残っていない）
 - [ ] `ARCHITECTURE.md` が実際のディレクトリ構造を反映している
+- [ ] `.claude/harness.json` の commands が実プロジェクトのコマンドと一致している
 - [ ] `PROJECT_STATUS.md` が初期化されている
 - [ ] 初期コミットが作成されている

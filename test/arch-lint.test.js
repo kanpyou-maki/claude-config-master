@@ -13,7 +13,7 @@ const {
   checkArch004,
   checkArch005,
   checkArch006,
-} = require('../hooks/arch-lint');
+} = require('../.claude/hooks/arch-lint');
 
 function makeTmpDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'arch-lint-test-'));
@@ -28,23 +28,23 @@ function writeFile(dir, rel, content) {
 
 // ─── ARCH-001 ────────────────────────────────────────────────────────────────
 
-describe('ARCH-001: エージェント定義は agents/ にのみ配置する', () => {
-  test('agents/ 内のエージェント定義は通過する', () => {
+describe('ARCH-001: エージェント定義は .claude/agents/ にのみ配置する', () => {
+  test('.claude/agents/ 内のエージェント定義は通過する', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'agents/my-agent.md',
+    const file = writeFile(root, '.claude/agents/my-agent.md',
       '---\nname: my-agent\ndescription: test\n---\ncontent');
     assert.equal(checkArch001(file, root), null);
   });
 
-  test('frontmatter のない .md は agents/ 外でも通過する', () => {
+  test('frontmatter のない .md は .claude/ 内でも通過する', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'README.md', '# hello');
+    const file = writeFile(root, '.claude/rules/common/style.md', '# hello');
     assert.equal(checkArch001(file, root), null);
   });
 
-  test('agents/ 外に name: frontmatter を持つ .md があると違反を返す', () => {
+  test('.claude/ 配下の agents/ 外に name: frontmatter を持つ .md があると違反を返す', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'some-agent.md',
+    const file = writeFile(root, '.claude/some-agent.md',
       '---\nname: some-agent\ndescription: test\n---\ncontent');
     const result = checkArch001(file, root);
     assert.notEqual(result, null);
@@ -53,37 +53,51 @@ describe('ARCH-001: エージェント定義は agents/ にのみ配置する', 
     assert.ok(result.fix.length > 0);
   });
 
+  test('.claude/ 外の .md はプロジェクト固有ファイルとして無視する', () => {
+    const root = makeTmpDir();
+    const file = writeFile(root, 'content/post.md',
+      '---\nname: my-blog-post\ndescription: test\n---\ncontent');
+    assert.equal(checkArch001(file, root), null);
+  });
+
+  test('SKILL.md は frontmatter があっても無視する', () => {
+    const root = makeTmpDir();
+    const file = writeFile(root, '.claude/skills/foo/SKILL.md',
+      '---\nname: foo\ndescription: skill\n---\ncontent');
+    assert.equal(checkArch001(file, root), null);
+  });
+
   test('.md 以外のファイルは無視する', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'hooks/my-hook.js', '// hook');
+    const file = writeFile(root, '.claude/hooks/my-hook.js', '// hook');
     assert.equal(checkArch001(file, root), null);
   });
 });
 
 // ─── ARCH-002 ────────────────────────────────────────────────────────────────
 
-describe('ARCH-002: フック実装は hooks/ にのみ配置する', () => {
-  test('hooks/ 内の .js は通過する', () => {
+describe('ARCH-002: .claude/ 配下のフック実装は .claude/hooks/ にのみ配置する', () => {
+  test('.claude/hooks/ 内の .js は通過する', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'hooks/my-hook.js', '// hook');
+    const file = writeFile(root, '.claude/hooks/my-hook.js', '// hook');
     assert.equal(checkArch002(file, root), null);
   });
 
-  test('.test.js は hooks/ 外でも通過する', () => {
+  test('.test.js は .claude/ 内の hooks/ 外でも通過する', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'test/my.test.js', '// test');
+    const file = writeFile(root, '.claude/my.test.js', '// test');
     assert.equal(checkArch002(file, root), null);
   });
 
-  test('test/ 内の .js は通過する', () => {
+  test('.claude/ 外の .js はプロジェクトソースとして無視する', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'test/helpers.js', '// helper');
+    const file = writeFile(root, 'src/app.js', '// app code');
     assert.equal(checkArch002(file, root), null);
   });
 
-  test('hooks/ 外のテスト以外の .js は違反を返す', () => {
+  test('.claude/ 配下の hooks/ 外の .js は違反を返す', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'scripts/my-hook.js', '// hook');
+    const file = writeFile(root, '.claude/scripts/my-hook.js', '// hook');
     const result = checkArch002(file, root);
     assert.notEqual(result, null);
     assert.equal(result.rule, 'ARCH-002');
@@ -92,37 +106,37 @@ describe('ARCH-002: フック実装は hooks/ にのみ配置する', () => {
 
   test('.js 以外のファイルは無視する', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'docs/design.md', '# design');
+    const file = writeFile(root, '.claude/agents/design.md', '# design');
     assert.equal(checkArch002(file, root), null);
   });
 });
 
 // ─── ARCH-003 ────────────────────────────────────────────────────────────────
 
-describe('ARCH-003: rules/ のファイルは {lang}/{category}.md 形式に従う', () => {
-  test('rules/{lang}/{category}.md は通過する', () => {
+describe('ARCH-003: .claude/rules/ のファイルは {lang}/{category}.md 形式に従う', () => {
+  test('.claude/rules/{lang}/{category}.md は通過する', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'rules/typescript/coding-style.md', '# style');
+    const file = writeFile(root, '.claude/rules/typescript/coding-style.md', '# style');
     assert.equal(checkArch003(file, root), null);
   });
 
-  test('rules/ 外の .md は無視する', () => {
+  test('.claude/rules/ 外の .md は無視する', () => {
     const root = makeTmpDir();
     const file = writeFile(root, 'docs/design.md', '# design');
     assert.equal(checkArch003(file, root), null);
   });
 
-  test('rules/ 直下の .md は違反を返す（lang ディレクトリなし）', () => {
+  test('.claude/rules/ 直下の .md は違反を返す（lang ディレクトリなし）', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'rules/coding-style.md', '# style');
+    const file = writeFile(root, '.claude/rules/coding-style.md', '# style');
     const result = checkArch003(file, root);
     assert.notEqual(result, null);
     assert.equal(result.rule, 'ARCH-003');
   });
 
-  test('rules/{lang}/{sub}/{category}.md は違反を返す（深すぎる）', () => {
+  test('.claude/rules/{lang}/{sub}/{category}.md は違反を返す（深すぎる）', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'rules/typescript/nested/coding-style.md', '# style');
+    const file = writeFile(root, '.claude/rules/typescript/nested/coding-style.md', '# style');
     const result = checkArch003(file, root);
     assert.notEqual(result, null);
     assert.equal(result.rule, 'ARCH-003');
@@ -131,13 +145,13 @@ describe('ARCH-003: rules/ のファイルは {lang}/{category}.md 形式に従�
 
 // ─── ARCH-004 ────────────────────────────────────────────────────────────────
 
-describe('ARCH-004: settings.json のフック参照先ファイルが実在する', () => {
+describe('ARCH-004: .claude/settings.json のフック参照先ファイルが実在する', () => {
   test('参照先フックファイルが存在する場合は通過する', () => {
     const root = makeTmpDir();
-    writeFile(root, 'hooks/my-hook.js', '// hook');
-    writeFile(root, 'settings.json', JSON.stringify({
+    writeFile(root, '.claude/hooks/my-hook.js', '// hook');
+    writeFile(root, '.claude/settings.json', JSON.stringify({
       hooks: {
-        PostToolUse: [{ hooks: [{ type: 'command', command: 'node hooks/my-hook.js' }] }],
+        PostToolUse: [{ hooks: [{ type: 'command', command: 'node .claude/hooks/my-hook.js' }] }],
       },
     }));
     const results = checkArch004(root);
@@ -146,9 +160,9 @@ describe('ARCH-004: settings.json のフック参照先ファイルが実在す�
 
   test('参照先フックファイルが存在しない場合は違反を返す', () => {
     const root = makeTmpDir();
-    writeFile(root, 'settings.json', JSON.stringify({
+    writeFile(root, '.claude/settings.json', JSON.stringify({
       hooks: {
-        PostToolUse: [{ hooks: [{ type: 'command', command: 'node hooks/missing-hook.js' }] }],
+        PostToolUse: [{ hooks: [{ type: 'command', command: 'node .claude/hooks/missing-hook.js' }] }],
       },
     }));
     const results = checkArch004(root);
@@ -156,7 +170,7 @@ describe('ARCH-004: settings.json のフック参照先ファイルが実在す�
     assert.equal(results[0].rule, 'ARCH-004');
   });
 
-  test('settings.json がない場合は空配列を返す', () => {
+  test('.claude/settings.json がない場合は空配列を返す', () => {
     const root = makeTmpDir();
     const results = checkArch004(root);
     assert.equal(results.length, 0);
@@ -164,7 +178,7 @@ describe('ARCH-004: settings.json のフック参照先ファイルが実在す�
 
   test('node コマンド以外のフック参照は無視する', () => {
     const root = makeTmpDir();
-    writeFile(root, 'settings.json', JSON.stringify({
+    writeFile(root, '.claude/settings.json', JSON.stringify({
       hooks: {
         PostToolUse: [{ hooks: [{ type: 'command', command: 'echo hello' }] }],
       },
@@ -251,7 +265,7 @@ describe('ARCH-006: Markdown 相対リンクが存在する', () => {
 
   test('.md 以外のファイルは無視する', () => {
     const root = makeTmpDir();
-    const file = writeFile(root, 'hooks/my-hook.js', '// [link](./missing.md)');
+    const file = writeFile(root, '.claude/hooks/my-hook.js', '// [link](./missing.md)');
     assert.deepEqual(checkArch006(file, root), []);
   });
 

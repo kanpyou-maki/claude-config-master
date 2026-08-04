@@ -3,28 +3,44 @@
 /**
  * arch-lint.js — アーキテクチャリンタ (PostToolUse: Edit | Write)
  *
+ * master・配布先プロジェクトの両方で同一に動作する（レイアウトが同型のため）。
+ * ARCH-001/002 は `.claude/` 配下のみを検査対象とし、
+ * 配布先プロジェクト固有のソースコードには干渉しない。
+ *
  * 規則:
- *   ARCH-001 エージェント定義は agents/ にのみ配置する
- *   ARCH-002 フック実装は hooks/ にのみ配置する（test/ は除く）
- *   ARCH-003 rules/ のファイルは {lang}/{category}.md 形式に従う
- *   ARCH-004 settings.json が参照するフックファイルが実在する
+ *   ARCH-001 エージェント定義は .claude/agents/ にのみ配置する
+ *   ARCH-002 フック実装 (.js) は .claude/ 配下では .claude/hooks/ にのみ配置する
+ *   ARCH-003 .claude/rules/ のファイルは {lang}/{category}.md 形式に従う
+ *   ARCH-004 .claude/settings.json が参照するフックファイルが実在する
  *   ARCH-005 CLAUDE.md は 100行以内
+ *   ARCH-006 .md ファイル内の相対リンクが実在する
  */
 
 const fs = require('fs');
 const path = require('path');
 
+const CLAUDE_DIR = '.claude';
+
+/** filePath が root/.claude/ 配下にあるか */
+function inClaudeDir(filePath, root) {
+  return filePath.startsWith(path.join(root, CLAUDE_DIR) + path.sep);
+}
+
 // ─── 個別チェック関数（root を受け取りテスト可能にする） ─────────────────────
 
 /**
- * ARCH-001: エージェント定義 (.md with `name:` frontmatter) は agents/ のみ
+ * ARCH-001: エージェント定義 (.md with `name:` frontmatter) は .claude/agents/ のみ
+ * `.claude/` 配下のみ検査する（プロジェクト固有の .md には干渉しない）。
+ * SKILL.md は frontmatter を持ちうるため除外する。
  * @param {string} filePath - 絶対パス
  * @param {string} [root]   - リポジトリルート（省略時は process.cwd()）
  */
 function checkArch001(filePath, root = process.cwd()) {
   if (!filePath.endsWith('.md')) return null;
+  if (path.basename(filePath) === 'SKILL.md') return null;
+  if (!inClaudeDir(filePath, root)) return null;
 
-  const agentsDir = path.join(root, 'agents') + path.sep;
+  const agentsDir = path.join(root, CLAUDE_DIR, 'agents') + path.sep;
   if (filePath.startsWith(agentsDir)) return null;
 
   let content;
@@ -45,41 +61,41 @@ function checkArch001(filePath, root = process.cwd()) {
   return {
     rule: 'ARCH-001',
     file: rel,
-    message: 'エージェント定義 (.md with name: frontmatter) は agents/ 以外に配置できません',
-    fix: `agents/ ディレクトリへ移動してください: mv ${rel} agents/${path.basename(filePath)}`,
+    message: 'エージェント定義 (.md with name: frontmatter) は .claude/agents/ 以外に配置できません',
+    fix: `.claude/agents/ へ移動してください: mv ${rel} .claude/agents/${path.basename(filePath)}`,
   };
 }
 
 /**
- * ARCH-002: フック実装 (.js) は hooks/ のみ（test/ 内および .test.js は除く）
+ * ARCH-002: .claude/ 配下の .js は .claude/hooks/ のみ（.test.js は除く）
+ * `.claude/` 外のプロジェクトソースコードには干渉しない。
  * @param {string} filePath
  * @param {string} [root]
  */
 function checkArch002(filePath, root = process.cwd()) {
   if (!filePath.endsWith('.js')) return null;
   if (filePath.endsWith('.test.js')) return null;
+  if (!inClaudeDir(filePath, root)) return null;
 
-  const hooksDir = path.join(root, 'hooks') + path.sep;
-  const testDir = path.join(root, 'test') + path.sep;
+  const hooksDir = path.join(root, CLAUDE_DIR, 'hooks') + path.sep;
   if (filePath.startsWith(hooksDir)) return null;
-  if (filePath.startsWith(testDir)) return null;
 
   const rel = path.relative(root, filePath);
   return {
     rule: 'ARCH-002',
     file: rel,
-    message: 'フック実装 (.js) は hooks/ 以外に配置できません（test/ は除く）',
-    fix: `hooks/ ディレクトリへ移動してください: mv ${rel} hooks/${path.basename(filePath)}`,
+    message: '.claude/ 配下のフック実装 (.js) は .claude/hooks/ 以外に配置できません',
+    fix: `.claude/hooks/ へ移動してください: mv ${rel} .claude/hooks/${path.basename(filePath)}`,
   };
 }
 
 /**
- * ARCH-003: rules/ のファイルは rules/{lang}/{category}.md 形式
+ * ARCH-003: .claude/rules/ のファイルは {lang}/{category}.md 形式
  * @param {string} filePath
  * @param {string} [root]
  */
 function checkArch003(filePath, root = process.cwd()) {
-  const rulesDir = path.join(root, 'rules');
+  const rulesDir = path.join(root, CLAUDE_DIR, 'rules');
   if (!filePath.startsWith(rulesDir + path.sep)) return null;
 
   const rel = path.relative(rulesDir, filePath);
@@ -89,18 +105,19 @@ function checkArch003(filePath, root = process.cwd()) {
   return {
     rule: 'ARCH-003',
     file: path.relative(root, filePath),
-    message: `rules/ のファイルは {lang}/{category}.md 形式に従う必要があります（現在: rules/${rel}）`,
-    fix: '正しい形式の例: rules/typescript/coding-style.md',
+    message: `.claude/rules/ のファイルは {lang}/{category}.md 形式に従う必要があります（現在: rules/${rel}）`,
+    fix: '正しい形式の例: .claude/rules/typescript/coding-style.md',
   };
 }
 
 /**
- * ARCH-004: settings.json が参照するフックファイルが実在する
+ * ARCH-004: .claude/settings.json が参照するフックファイルが実在する
+ * フックコマンドはプロジェクトルートからの相対パスとして解決する。
  * @param {string} [root]
  * @returns {Array<{rule, file, message, fix}>}
  */
 function checkArch004(root = process.cwd()) {
-  const settingsPath = path.join(root, 'settings.json');
+  const settingsPath = path.join(root, CLAUDE_DIR, 'settings.json');
   if (!fs.existsSync(settingsPath)) return [];
 
   let settings;
@@ -123,7 +140,7 @@ function checkArch004(root = process.cwd()) {
         if (!fs.existsSync(hookFile)) {
           violations.push({
             rule: 'ARCH-004',
-            file: 'settings.json',
+            file: '.claude/settings.json',
             message: `settings.json が存在しないフックを参照しています: ${match[1]}`,
             fix: `${match[1]} を作成するか、settings.json から該当エントリを削除してください`,
           });

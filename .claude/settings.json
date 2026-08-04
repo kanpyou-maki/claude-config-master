@@ -23,7 +23,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node hooks/pre-bash-git-push-reminder.js"
+            "command": "node .claude/hooks/pre-bash-git-push-reminder.js"
           }
         ],
         "description": "git push 前に確認メッセージを表示"
@@ -35,7 +35,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node hooks/quality-gate.js",
+            "command": "node .claude/hooks/quality-gate.js",
             "async": true,
             "timeout": 30
           }
@@ -47,7 +47,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node hooks/arch-lint.js"
+            "command": "node .claude/hooks/arch-lint.js"
           }
         ],
         "description": "ファイル編集後にアーキテクチャ規則違反を検出（ARCH-001〜005）"
@@ -57,7 +57,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "node hooks/post-edit-typecheck.js"
+            "command": "node .claude/hooks/post-edit-typecheck.js"
           }
         ],
         "description": ".ts/.tsx 編集後に TypeScript 型チェックを実行"

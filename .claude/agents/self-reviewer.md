@@ -63,6 +63,6 @@ model: sonnet
 
 ## 参考
 
-- [docs/design-docs/core-beliefs.md](../docs/design-docs/core-beliefs.md) — コーディング原則
-- [docs/golden-rules.md](../docs/golden-rules.md) — 黄金原則
-- [skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御
+- [docs/design-docs/core-beliefs.md](../../docs/design-docs/core-beliefs.md) — コーディング原則
+- [docs/golden-rules.md](../../docs/golden-rules.md) — 黄金原則
+- [.claude/skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御

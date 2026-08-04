@@ -42,11 +42,11 @@ model: sonnet
 
 | 変更の種類 | チェック内容 |
 |-----------|------------|
-| 新しいフック追加 | `settings.json` に登録されているか、`ARCHITECTURE.md` に記載があるか |
+| 新しいフック追加 | `.claude/settings.json` に登録されているか、`ARCHITECTURE.md` に記載があるか |
 | 新しいエージェント追加 | `CLAUDE.md` のエージェント一覧に記載があるか |
 | ディレクトリ構造の変更 | `ARCHITECTURE.md` の構造マップと一致しているか |
 | フックの規則変更 | `docs/golden-rules.md` と矛盾していないか |
-| 新しいルール追加 | `rules/` の命名規則に従っているか |
+| 新しいルール追加 | `.claude/rules/` の命名規則に従っているか |
 | API 変更 | 関連する `docs/design.md` や `docs/product-specs/` が更新されているか |
 
 ### 3. ADR の最新性チェック
@@ -58,8 +58,8 @@ ls docs/adr/
 ```
 
 - アーキテクチャ上の重要な判断（新しい設計パターン、依存関係の追加/削除）
-- 既存の ARCH-001〜005 規則の変更
-- `settings.json` の構造的変更
+- 既存の ARCH-001〜006 規則の変更
+- `.claude/settings.json` の構造的変更
 
 ADR なしで重要な設計変更が行われている場合は BLOCK。
 
@@ -68,11 +68,12 @@ ADR なしで重要な設計変更が行われている場合は BLOCK。
 変更されたドキュメントファイルに含まれる相対パスリンクが実在するか確認:
 
 ```bash
-# .md ファイル内のリンクを抽出して存在確認
-grep -rn "\[.*\](\.\./\|\./" docs/ agents/ skills/ 2>/dev/null | head -30
+# structure-test がリンク切れと知識グラフの孤立ノードを機械的に検証する
+node .claude/hooks/structure-test.js
 ```
 
 404 に相当するリンク（参照先ファイルが存在しない）は BLOCK。
+孤立ドキュメント警告（CLAUDE.md から辿れない docs/）は WARNING として報告し、グラフへの接続を推奨する。
 
 ### 5. 新機能のドキュメント確認
 
@@ -82,7 +83,7 @@ grep -rn "\[.*\](\.\./\|\./" docs/ agents/ skills/ 2>/dev/null | head -30
 
 ## 参考
 
-- [docs/golden-rules.md](../docs/golden-rules.md) — G-10〜G-12（ドキュメント原則）
-- [ARCHITECTURE.md](../ARCHITECTURE.md) — 構造マップ
-- [docs/adr/](../docs/adr/) — ADR 一覧
-- [skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御
+- [docs/golden-rules.md](../../docs/golden-rules.md) — G-10〜G-12（ドキュメント原則）
+- [ARCHITECTURE.md](../../ARCHITECTURE.md) — 構造マップ
+- [docs/adr/](../../docs/adr/) — ADR 一覧
+- [.claude/skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御

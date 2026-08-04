@@ -31,18 +31,18 @@ Phase 1: 知識ベース再構築
   └── ARCHITECTURE.md 作成
 
 Phase 2: アーキテクチャ強制
-  ├── カスタムリンタフック（hooks/arch-lint.js）
-  └── 構造テスト（hooks/structure-test.js）
+  ├── カスタムリンタフック（.claude/hooks/arch-lint.js）
+  └── 構造テスト（.claude/hooks/structure-test.js）
 
 Phase 3: 実行プラン管理
   └── docs/exec-plans/ (active/ + completed/)
 
 Phase 4: 黄金原則 & GC エージェント
   ├── docs/golden-rules.md
-  └── agents/gc-agent.md
+  └── .claude/agents/gc-agent.md
 
 Phase 5: エージェント強化
-  ├── skills/verification-loop 拡張
+  ├── .claude/skills/verification-loop 拡張
   └── install.sh 更新
 ```
 
@@ -68,32 +68,29 @@ claude-config-master/
 │   ├── design-docs/             # コンポーネント別詳細設計
 │   ├── product-specs/           # 機能仕様
 │   └── references/              # 外部参照・背景資料
-├── agents/
-│   ├── architect.md
-│   ├── code-reviewer.md
-│   ├── doc-updater.md
-│   ├── gc-agent.md              # 新規: GC エージェント
-│   ├── planner.md
-│   ├── refactor-cleaner.md
-│   ├── security-reviewer.md
-│   └── tdd-guide.md
-├── hooks/
-│   ├── arch-lint.js             # 新規: アーキテクチャリンタ
-│   ├── quality-gate.js
-│   ├── pre-bash-git-push-reminder.js
-│   ├── post-edit-typecheck.js
-│   └── structure-test.js        # 新規: 構造テスト
-├── rules/
-│   ├── common/
-│   ├── python/
-│   └── typescript/
-├── skills/
-│   ├── verification-loop/       # 拡張
-│   ├── database-migrations/
-│   ├── python-patterns/
-│   └── python-testing/
-├── settings.json
-└── install.sh                   # 更新
+├── .claude/                     # 配布物の原本 = master 自身のハーネス（ADR-004: 同型レイアウト）
+│   ├── agents/                  # 開発サポート 7体 + レビュアー 6体
+│   ├── hooks/
+│   │   ├── arch-lint.js         # アーキテクチャリンタ（ARCH-001〜006）
+│   │   ├── structure-test.js    # 構造テスト + 知識グラフ検証
+│   │   ├── quality-gate.js
+│   │   ├── pre-bash-git-push-reminder.js
+│   │   └── post-edit-typecheck.js
+│   ├── rules/
+│   │   ├── common/
+│   │   ├── python/
+│   │   └── typescript/
+│   ├── skills/
+│   │   ├── review-loop/         # Ralph Wiggum ループ
+│   │   ├── improve-harness/     # ハーネス自己改善ループ
+│   │   ├── bootstrap/ sync-upstream/ sync-downstream/
+│   │   ├── verification-loop/ database-migrations/
+│   │   └── python-patterns/ python-testing/
+│   ├── settings.json
+│   └── harness.json             # コマンド定義（配布先では install.sh が言語別に生成）
+├── templates/                   # 配布用ルートテンプレート
+├── dist-manifest.json           # 配布マニフェスト（配布対象・除外の唯一の定義）
+└── install.sh
 ```
 
 ---
@@ -120,21 +117,21 @@ claude-config-master/
 - 依存関係の方向ルール（許可・禁止）
 - 主要コンポーネント間のインタラクション図
 
-### 3.3 hooks/arch-lint.js（アーキテクチャリンタ）
+### 3.3 .claude/hooks/arch-lint.js（アーキテクチャリンタ）
 
 **責務**: ファイル編集後にアーキテクチャ規則への違反を検出する。
 
 **検出項目**:
-- `agents/` 以外への agent 定義の混入
-- `hooks/` 以外へのフック実装の配置
-- `rules/` の命名規則違反（`{lang}/{category}.md` 形式）
+- `.claude/agents/` 以外への agent 定義の混入
+- `.claude/hooks/` 以外へのフック実装の配置（`.claude/` 配下のみ検査）
+- `.claude/rules/` の命名規則違反（`{lang}/{category}.md` 形式）
 - `settings.json` のフック参照が実ファイルと不整合
 
 **エラー出力形式**:
 ```
-[arch-lint] 違反検出: hooks/ 外にフック実装が存在します
+[arch-lint] 違反検出: .claude/hooks/ 外にフック実装が存在します
   ファイル: src/my-hook.js
-  修復手順: hooks/ ディレクトリへ移動し、settings.json の参照を更新してください
+  修復手順: .claude/hooks/ ディレクトリへ移動し、settings.json の参照を更新してください
 ```
 
 ### 3.4 docs/exec-plans/
@@ -169,7 +166,7 @@ claude-config-master/
 - `docs/adr/` に記録のないアーキテクチャ変更はコミット不可
 - テストカバレッジが 80% を下回ることを許容しない
 
-### 3.6 agents/gc-agent.md（GC エージェント）
+### 3.6 .claude/agents/gc-agent.md（GC エージェント）
 
 **責務**: 黄金原則への逸脱を定期的に検知し、リファクタリング PR を自動作成する。
 
@@ -208,7 +205,7 @@ claude-config-master/
         "hooks": [
           {
             "type": "command",
-            "command": "node hooks/arch-lint.js"
+            "command": "node .claude/hooks/arch-lint.js"
           }
         ]
       }
@@ -219,7 +216,7 @@ claude-config-master/
         "hooks": [
           {
             "type": "command",
-            "command": "node hooks/quality-gate.js"
+            "command": "node .claude/hooks/quality-gate.js"
           }
         ]
       }
@@ -337,7 +334,7 @@ PR 作成 → マージ
 
 ### 7.4 スキル
 
-`skills/review-loop/SKILL.md` に **Ralph Wiggum ループ**のオーケストレーション手順を定義する。
+`.claude/skills/review-loop/SKILL.md` に **Ralph Wiggum ループ**のオーケストレーション手順を定義する。
 
 このスキルは以下を担う:
 

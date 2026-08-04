@@ -111,6 +111,6 @@ Fix:
 
 ## 参考
 
-- [docs/golden-rules.md](../docs/golden-rules.md) — セキュリティ原則
-- [rules/common/security.md](../rules/common/security.md) — セキュリティルール
-- [skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御
+- [docs/golden-rules.md](../../docs/golden-rules.md) — セキュリティ原則
+- [.claude/rules/common/security.md](../rules/common/security.md) — セキュリティルール
+- [.claude/skills/review-loop/SKILL.md](../skills/review-loop/SKILL.md) — ループ全体の制御
