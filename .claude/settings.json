@@ -43,6 +43,16 @@
         "description": "ファイル編集後にフォーマット・Lint を自動実行（TypeScript: Biome/Prettier、Python: ruff）"
       },
       {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node .claude/hooks/arch-lint.js"
+          }
+        ],
+        "description": "ファイル編集後にアーキテクチャ規則違反を検出（ARCH-001〜005）"
+      },
+      {
         "matcher": "Edit",
         "hooks": [
           {

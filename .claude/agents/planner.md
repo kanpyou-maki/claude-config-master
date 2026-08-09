@@ -41,6 +41,10 @@ Each step must include:
 
 ## Plan Format
 
+プランは必ず `docs/exec-plans/active/PLAN-{YYYYMMDD}-{slug}.md` として保存すること。
+テンプレート: `docs/exec-plans/active/_template.md`
+完了後: `docs/exec-plans/completed/` へ移動し、`docs/PLANS.md` のインデックスを更新する。
+
 ```markdown
 # Implementation Plan: [Feature Name]
 

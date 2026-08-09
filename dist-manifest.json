@@ -1,0 +1,54 @@
+{
+  "$comment": "配布マニフェスト — 何を配布先プロジェクトへ展開するかの唯一の機械可読な定義。install.sh と sync-upstream / sync-downstream スキルが参照する。『配布用』と『master 専用』の区別はこのファイルで宣言する。",
+  "version": 1,
+  "claude": {
+    "exclude": [
+      "harness.json",
+      "master-path",
+      "settings.local.json"
+    ],
+    "skills": {
+      "always": [
+        "verification-loop",
+        "database-migrations",
+        "review-loop",
+        "bootstrap",
+        "sync-upstream",
+        "sync-downstream",
+        "improve-harness"
+      ],
+      "typescript": [],
+      "python": [
+        "python-patterns",
+        "python-testing"
+      ]
+    }
+  },
+  "docsSkeleton": [
+    "docs/golden-rules.md",
+    "docs/friction-log.md",
+    "docs/design-docs/core-beliefs.md",
+    "docs/references/doc-templates.md",
+    "docs/exec-plans/active/_template.md"
+  ],
+  "rootTemplates": {
+    "CLAUDE.md": "templates/CLAUDE.md",
+    "ARCHITECTURE.md": "templates/ARCHITECTURE.md",
+    "PROJECT_STATUS.md": "templates/PROJECT_STATUS.md"
+  },
+  "harnessCommands": {
+    "typescript": {
+      "test": "npm test",
+      "typecheck": "npx tsc --noEmit"
+    },
+    "python": {
+      "test": "pytest",
+      "lint": "ruff check ."
+    },
+    "both": {
+      "test": "npm test && pytest",
+      "typecheck": "npx tsc --noEmit",
+      "lint": "ruff check ."
+    }
+  }
+}

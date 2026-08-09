@@ -7,6 +7,24 @@ description: Pre-PR quality gate. Run after completing a feature or significant 
 
 Run this before creating any PR or marking a task complete. Work through each phase in order; stop and fix before continuing if a phase fails.
 
+## Phase 0: ハーネス整合性チェック（ハーネスエンジニアリング適用済みプロジェクトのみ）
+
+```bash
+node .claude/hooks/structure-test.js
+echo '{}' | node .claude/hooks/arch-lint.js 2>&1
+```
+
+エラーがあれば STOP。アプリケーションの検証に入る前に、ハーネス自体が正しく機能していることを確認する。
+
+## コマンドの解決
+
+Phase 1〜4 の各コマンドは `.claude/harness.json` の `commands` に定義があればそれを**優先して**使う。
+以下の言語別コマンドは harness.json に定義がない場合のフォールバック例である。
+
+```bash
+node -pe "JSON.stringify(require('./.claude/harness.json').commands, null, 2)" 2>/dev/null
+```
+
 ## Phase 1: Build
 
 **TypeScript / Node.js**

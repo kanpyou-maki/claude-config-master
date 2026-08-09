@@ -1,0 +1,9 @@
+{
+  "$comment": "このプロジェクトのハーネスコマンド定義。エージェント・スキルはテスト等のコマンドをハードコードせず、このファイルから読むこと。例: node -pe \"require('./.claude/harness.json').commands.test\"",
+  "language": "typescript",
+  "commands": {
+    "test": "npm test",
+    "structure": "node .claude/hooks/structure-test.js",
+    "archLint": "echo '{}' | node .claude/hooks/arch-lint.js"
+  }
+}
