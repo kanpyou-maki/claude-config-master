@@ -41,7 +41,7 @@
             "timeout": 30
           }
         ],
-        "description": "ファイル編集後にフォーマット・Lint を自動実行（TypeScript: Biome/Prettier、Python: ruff）"
+        "description": "ファイル編集後に、プロジェクトに設定のある整形ツールを実行（TypeScript/JS: Biome、なければ Prettier。Python: ruff）"
       },
       {
         "matcher": "Edit|Write",

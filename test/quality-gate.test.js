@@ -71,10 +71,39 @@ describe('planFormat: 編集したファイルに対する整形コマンドを�
     assert.equal(planFormat(file, root)[0].cwd, path.join(root, 'web'));
   });
 
-  test('biome.json がなければ Prettier で整形する', () => {
+  test('Prettier の設定ファイルがあれば、そのディレクトリの Prettier で整形する', () => {
     const root = makeTmpDir();
+    writeFile(root, '.prettierrc', '{}');
     const file = writeFile(root, 'docs/readme.md');
     assert.deepEqual(planFormat(file, root), [{ command: 'npx', args: ['prettier', '--write', file], cwd: root }]);
+  });
+
+  test('package.json の prettier キーも Prettier の設定として扱う', () => {
+    const root = makeTmpDir();
+    writeFile(root, 'web/package.json', '{ "prettier": { "singleQuote": true } }');
+    writeFile(root, 'web/node_modules/.bin/prettier');
+    const file = writeFile(root, 'web/src/a.ts');
+    assert.deepEqual(planFormat(file, root), [{
+      command: path.join(root, 'web/node_modules/.bin/prettier'),
+      args: ['--write', file],
+      cwd: path.join(root, 'web'),
+    }]);
+  });
+
+  test('Biome と Prettier の両方の設定があれば Biome を使う', () => {
+    const root = makeTmpDir();
+    writeFile(root, 'biome.json', '{}');
+    writeFile(root, '.prettierrc', '{}');
+    const file = writeFile(root, 'src/a.ts');
+    assert.deepEqual(planFormat(file, root), [{ command: 'npx', args: ['biome', 'check', '--write', file], cwd: root }]);
+  });
+
+  test('整形ツールの設定がなければ整形しない（既定のスタイルを押しつけない）', () => {
+    const root = makeTmpDir();
+    writeFile(root, 'package.json', '{ "name": "no-formatter" }');
+    writeFile(root, 'broken/package.json', '{ not json');
+    assert.deepEqual(planFormat(writeFile(root, 'docs/readme.md'), root), []);
+    assert.deepEqual(planFormat(writeFile(root, 'broken/a.ts'), root), []);
   });
 
   test('Python は ruff format と ruff check --fix を実行する', () => {
