@@ -150,11 +150,11 @@ PR 作成前に `.claude/skills/review-loop/SKILL.md` の手順で全員を通�
 
 | スクリプト | タイミング | 動作 |
 |-----------|-----------|------|
-| `arch-lint.js` | Edit / Write 後 | ARCH-001〜006 検証（`.claude/` スコープ・修復手順付き）|
-| `structure-test.js` | 単体実行 / CI | 構造整合性・リンク・知識グラフ（孤立ドキュメント）検証 |
+| `arch-lint.js` | Edit / Write 後 | ARCH-001〜006 検証（`.claude/` スコープ・修復手順付き）。違反は終了コード 2 でモデルに伝える |
+| `structure-test.js` | 単体実行 / CI | 構造整合性・リンク・スキルの frontmatter・知識グラフ（孤立ドキュメント）検証 |
 | `quality-gate.js` | Edit / Write / MultiEdit 後 | TypeScript/JS: Biome or Prettier、Python: ruff |
-| `post-edit-typecheck.js` | .ts/.tsx 編集後 | `tsc --noEmit` で型チェック |
-| `pre-bash-git-push-reminder.js` | git push 前 | 確認メッセージを表示 |
+| `post-edit-typecheck.js` | .ts/.tsx 編集後 | `tsc --noEmit` で型チェックし、編集したファイルのエラーをモデルに伝える |
+| `pre-bash-git-push-reminder.js` | git push 前 | review-loop を通したかの確認をモデルに渡す（ブロックはしない）|
 
 ```bash
 # テスト実行
