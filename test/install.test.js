@@ -271,8 +271,12 @@ describe('install.sh: update モード', () => {
     const current = fs.readFileSync(settingsPath, 'utf8');
     fs.writeFileSync(settingsPath, current.replaceAll('\\"$CLAUDE_PROJECT_DIR\\"/', ''));
 
-    const output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
-    fs.writeFileSync(settingsPath, current);
+    let output;
+    try {
+      output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
+    } finally {
+      fs.writeFileSync(settingsPath, current);
+    }
 
     assert.match(output, /ARCH-004/);
     assert.ok(output.includes('node "$CLAUDE_PROJECT_DIR"/.claude/hooks/arch-lint.js'), '書き換え後の形が示されていない');
@@ -281,6 +285,30 @@ describe('install.sh: update モード', () => {
   test('settings.json のフックコマンドが正しければ ARCH-004 を出さない', () => {
     const output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
     assert.doesNotMatch(output, /ARCH-004/);
+  });
+
+  test('配布先を相対パスで指定しても最後まで更新する', () => {
+    const output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', path.basename(tmpDir)], {
+      cwd: path.dirname(tmpDir),
+      encoding: 'utf8',
+    });
+    assert.ok(output.includes('[7/7]'), '更新が途中で止まった');
+  });
+
+  test('settings.json のフック定義が壊れていても更新を止めない', () => {
+    const settingsPath = path.join(tmpDir, '.claude', 'settings.json');
+    const current = fs.readFileSync(settingsPath, 'utf8');
+    fs.writeFileSync(settingsPath, JSON.stringify({ hooks: { PostToolUse: null } }));
+
+    let output;
+    try {
+      output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
+    } finally {
+      fs.writeFileSync(settingsPath, current);
+    }
+
+    assert.ok(output.includes('[7/7]'), '更新が途中で止まった');
+    assert.ok(output.includes('確認できませんでした'), '確認できなかったことが伝わらない');
   });
 
   test('カスタマイズ済み harness.json は保持される', () => {

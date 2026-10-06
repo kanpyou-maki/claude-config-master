@@ -46,9 +46,9 @@
 | `.claude/hooks/post-edit-typecheck.js` | `post-edit-typecheck.test.js`（5） | 97% | 80% | ✅ 達成 |
 | `.claude/hooks/pre-bash-git-push-reminder.js` | `hook-contract.test.js` | 100% | 80% | ✅ 達成 |
 | フックの入出力規約（ADR-005） | `hook-contract.test.js`（13） | — | — | ✅ 達成 |
-| `install.sh` (smoke test) | `install.test.js`（21） | — | — | ✅ 達成 |
+| `install.sh` (smoke test) | `install.test.js`（25） | — | — | ✅ 達成 |
 
-**合計: 119/119 テスト通過**
+**合計: 123/123 テスト通過**
 
 ### アーキテクチャ規則遵守 (100/100)
 

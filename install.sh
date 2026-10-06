@@ -207,11 +207,13 @@ SETTINGS_DEST="$TARGET/.claude/settings.json"
 if [[ "$MODE" == "update" ]]; then
   echo "      settings.json — skipped in update mode (manage manually or via sync-downstream)"
   # settings.json は上書きしないので、フックの起動コマンドが古い形のままなら書き換え方を知らせる（ADR-005）
+  # 付加的な確認なので、失敗しても更新は止めない
   if [[ -f "$SETTINGS_DEST" ]]; then
     node -e "
-      const { checkArch004, formatViolation } = require(process.argv[1] + '/.claude/hooks/arch-lint.js');
-      for (const v of checkArch004(process.argv[1])) console.log('      ⚠ ' + formatViolation(v).split('\n').join('\n        '));
-    " "$TARGET"
+      const root = require('path').resolve(process.argv[1]);
+      const { checkArch004, formatViolation } = require(root + '/.claude/hooks/arch-lint.js');
+      for (const v of checkArch004(root)) console.log('      ⚠ ' + formatViolation(v).split('\n').join('\n        '));
+    " "$TARGET" 2>/dev/null || echo "      ⚠ settings.json のフックコマンドを確認できませんでした（手動で確認: echo '{}' | node .claude/hooks/arch-lint.js）"
   fi
 elif [[ -f "$SETTINGS_DEST" ]]; then
   echo "      ⚠ .claude/settings.json already exists — skipping (merge manually if needed)"

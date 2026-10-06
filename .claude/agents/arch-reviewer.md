@@ -30,7 +30,7 @@ model: sonnet
 ---
 ```
 
-**BLOCK 条件:** ARCH-001〜005 のいずれかの違反、構造テスト失敗、または ARCHITECTURE.md に記載された依存方向への違反
+**BLOCK 条件:** ARCH-001〜006 のいずれかの違反、構造テスト失敗、または ARCHITECTURE.md に記載された依存方向への違反
 
 ## 実行手順
 

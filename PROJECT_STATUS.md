@@ -12,7 +12,7 @@
 
 配布可能な Claude Code ハーネス設定の原本（claude-config-master）。
 2026-10-06 のハーネスレビュー（vid-cut の使用実績の集計）を受けて、改善を順に進めている。
-1 本目（フックの入出力の修正・スキルの frontmatter）が PR でレビュー待ち。
+1 本目（フックの入出力の修正・スキルの frontmatter）がブランチ `improve/hooks-reach-model` でレビュー待ち。
 
 ## 完了済み
 
