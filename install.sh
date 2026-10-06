@@ -206,15 +206,6 @@ echo "[5/7] Generating settings.json / harness.json / master-path..."
 SETTINGS_DEST="$TARGET/.claude/settings.json"
 if [[ "$MODE" == "update" ]]; then
   echo "      settings.json — skipped in update mode (manage manually or via sync-downstream)"
-  # settings.json は上書きしないので、フックの起動コマンドが古い形のままなら書き換え方を知らせる（ADR-005）
-  # 付加的な確認なので、失敗しても更新は止めない
-  if [[ -f "$SETTINGS_DEST" ]]; then
-    node -e "
-      const root = require('path').resolve(process.argv[1]);
-      const { checkArch004, formatViolation } = require(root + '/.claude/hooks/arch-lint.js');
-      for (const v of checkArch004(root)) console.log('      ⚠ ' + formatViolation(v).split('\n').join('\n        '));
-    " "$TARGET" 2>/dev/null || echo "      ⚠ settings.json のフックコマンドを確認できませんでした（手動で確認: echo '{}' | node .claude/hooks/arch-lint.js）"
-  fi
 elif [[ -f "$SETTINGS_DEST" ]]; then
   echo "      ⚠ .claude/settings.json already exists — skipping (merge manually if needed)"
 else
@@ -373,7 +364,7 @@ claude-config-master のハーネス設定一式を install.sh で導入する�
 
 ## Consequences（帰結）
 
-- アーキテクチャ規則（ARCH-001〜006）が機械的に強制される
+- アーキテクチャ規則（ARCH-NNN。一覧は ARCHITECTURE.md）が機械的に強制される
 - 以降のアーキテクチャ判断はこのディレクトリに ADR として記録すること
 EOF
     echo "      ✓ ADR-000-adopt-claude-harness.md"
@@ -387,6 +378,17 @@ echo ""
 
 if [[ "$MODE" == "update" ]]; then
   echo "Update complete."
+
+  # update は settings.json・PROJECT_STATUS.md・CLAUDE.md を上書きしない。更新したフックの規則
+  # （ARCH-004・005・007）に違反していれば、直し方を知らせる（ADR-005・ADR-006）
+  # 付加的な確認なので、失敗しても更新は止めない
+  node -e "
+    const root = require('path').resolve(process.argv[1]);
+    const { runChecks, formatViolation } = require(root + '/.claude/hooks/arch-lint.js');
+    const violations = runChecks('', root);
+    if (violations.length > 0) console.log('\nArchitecture rule violations in files that update does not overwrite:');
+    for (const v of violations) console.log('  ⚠ ' + formatViolation(v).split('\n').join('\n    '));
+  " "$TARGET" 2>/dev/null || echo "  ⚠ アーキテクチャ規則を確認できませんでした（手動で確認: echo '{}' | node .claude/hooks/arch-lint.js）"
   if [[ ${#CHANGED_FILES[@]} -gt 0 ]]; then
     echo ""
     echo "Changed files (not overwritten — merge with sync-downstream skill):"

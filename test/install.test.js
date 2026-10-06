@@ -170,6 +170,14 @@ describe('install.sh: typescript インストールの smoke test', () => {
     assert.ok(lines <= 100, `配布 CLAUDE.md が ${lines} 行ある`);
   });
 
+  test('配布された PROJECT_STATUS.md は引き継ぎメモの 4 節だけを持ち、ARCH-007 に違反しない', () => {
+    const headings = fs.readFileSync(path.join(tmpDir, 'PROJECT_STATUS.md'), 'utf8').match(/^## .+$/gm);
+    assert.deepEqual(headings, ['## 現在のフェーズ', '## 進行中', '## 次にやること', '## 人間待ち']);
+
+    const { checkArch007 } = require(path.join(tmpDir, '.claude', 'hooks', 'arch-lint.js'));
+    assert.equal(checkArch007(tmpDir), null);
+  });
+
   // ─── docs/ skeleton ───────────────────────────────────────────────────────
 
   test('docs/ ディレクトリ構造が正しく作成されている', () => {
@@ -305,6 +313,22 @@ describe('install.sh: update モード', () => {
     assert.ok(output.includes('node "$CLAUDE_PROJECT_DIR"/.claude/hooks/arch-lint.js'), '書き換え後の形が示されていない');
   });
 
+  test('状態ファイルが上限を超えていれば ARCH-007 として知らせる', () => {
+    const statusPath = path.join(tmpDir, 'PROJECT_STATUS.md');
+    const current = fs.readFileSync(statusPath, 'utf8');
+    fs.writeFileSync(statusPath, current + 'x'.repeat(6 * 1024));
+
+    let output;
+    try {
+      output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
+    } finally {
+      fs.writeFileSync(statusPath, current);
+    }
+
+    assert.match(output, /ARCH-007/);
+    assert.ok(output.includes('[7/7]'), '更新が途中で止まった');
+  });
+
   test('settings.json のフックコマンドが正しければ ARCH-004 を出さない', () => {
     const output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
     assert.doesNotMatch(output, /ARCH-004/);
@@ -318,19 +342,41 @@ describe('install.sh: update モード', () => {
     assert.ok(output.includes('[7/7]'), '更新が途中で止まった');
   });
 
-  test('settings.json のフック定義が壊れていても更新を止めない', () => {
+  test('settings.json のフック定義が壊れていても、ほかの規則の違反は知らせる', () => {
     const settingsPath = path.join(tmpDir, '.claude', 'settings.json');
-    const current = fs.readFileSync(settingsPath, 'utf8');
+    const statusPath = path.join(tmpDir, 'PROJECT_STATUS.md');
+    const settings = fs.readFileSync(settingsPath, 'utf8');
+    const status = fs.readFileSync(statusPath, 'utf8');
     fs.writeFileSync(settingsPath, JSON.stringify({ hooks: { PostToolUse: null } }));
+    fs.writeFileSync(statusPath, status + 'x'.repeat(6 * 1024));
 
     let output;
     try {
       output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
     } finally {
-      fs.writeFileSync(settingsPath, current);
+      fs.writeFileSync(settingsPath, settings);
+      fs.writeFileSync(statusPath, status);
     }
 
-    assert.ok(output.includes('[7/7]'), '更新が途中で止まった');
+    assert.match(output, /ARCH-007/);
+  });
+
+  test('最後の検査そのものが失敗しても更新は完了し、確認できなかったことを伝える', () => {
+    // CLAUDE.md がディレクトリだと、ARCH-005 の読み込みが例外になる
+    const claudePath = path.join(tmpDir, 'CLAUDE.md');
+    const backupPath = path.join(tmpDir, 'CLAUDE.md.bak');
+    fs.renameSync(claudePath, backupPath);
+    fs.mkdirSync(claudePath);
+
+    let output;
+    try {
+      output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
+    } finally {
+      fs.rmdirSync(claudePath);
+      fs.renameSync(backupPath, claudePath);
+    }
+
+    assert.ok(output.includes('Update complete.'), '更新が途中で止まった');
     assert.ok(output.includes('確認できませんでした'), '確認できなかったことが伝わらない');
   });
 

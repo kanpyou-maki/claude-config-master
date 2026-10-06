@@ -12,7 +12,7 @@ master で書かれたパスは配布先でもそのまま成立する。配布�
 |-----|------|----------|
 | `CLAUDE.md` | エージェントへのナビゲーション地図（≤100行） | 人間 / Claude |
 | `ARCHITECTURE.md` | このファイル。構造マップ | 人間 / Claude |
-| `PROJECT_STATUS.md` | 現在の進捗状態 | Claude / 人間 |
+| `PROJECT_STATUS.md` | 次のセッションへの引き継ぎメモ（現在地・次の一手・人間待ち。6KB 以内） | Claude / 人間 |
 | `.claude/agents/` | サブエージェント定義 (`.md`、frontmatter 必須)【配布】 | improve-harness |
 | `.claude/hooks/` | Claude Code フック実装 (`.js`)【配布】 | TDD で追加 |
 | `.claude/rules/` | コーディングルール (`{lang}/{category}.md`)【配布】 | 人間 / Claude |
@@ -52,6 +52,7 @@ install.sh        →  dist-manifest.json と .claude/, docs/, templates/ を読
 | ARCH-004 | `.claude/settings.json` のフックコマンドは `$CLAUDE_PROJECT_DIR` 起点で書かれ、参照先のファイルが実在する |
 | ARCH-005 | `CLAUDE.md` は常に 100行以内 |
 | ARCH-006 | `.md` ファイル内の相対リンクが実在するファイルを指している（コードブロック内は除外）|
+| ARCH-007 | `PROJECT_STATUS.md` は 6KB（6,144 バイト）以内（[ADR-006](./docs/adr/ADR-006-status-file-as-handoff-note.md)）|
 
 違反は stderr + 終了コード 2 でモデルに渡す（[ADR-005](./docs/adr/ADR-005-hook-io-contract.md)）。詳細: [docs/design.md § 3.3](./docs/design.md)
 
@@ -77,5 +78,7 @@ target/
 └── docs/               ← docsSkeleton（golden-rules.md 等。master と同じ内容）
                           docsTemplates（friction-log.md。templates/docs/ の空の雛形）
 ```
+
+`docs/friction-log.md` は master 自身の摩擦ログで、配布されるのは `templates/docs/` の雛形。記録ルールとエントリ形式（「## エントリ」より前）は両方を同じ内容に保つ（テストが検査する）。
 
 改善の還流: プロジェクト → `sync-upstream` → master → `install.sh update` / `sync-downstream` → 全プロジェクト

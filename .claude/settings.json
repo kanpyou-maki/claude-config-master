@@ -51,7 +51,7 @@
             "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/arch-lint.js"
           }
         ],
-        "description": "ファイル編集後にアーキテクチャ規則違反を検出してモデルに伝える（ARCH-001〜006）"
+        "description": "ファイル編集後にアーキテクチャ規則違反を検出してモデルに伝える（ARCH-NNN）"
       },
       {
         "matcher": "Edit",

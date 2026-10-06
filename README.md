@@ -20,7 +20,7 @@ master で書かれたパス・コマンドは配布先でもそのまま成立�
 claude-config-master/
 ├── CLAUDE.md               # Claude Code へのナビゲーション地図（≤100行）
 ├── ARCHITECTURE.md         # ディレクトリ構造・依存ルール・知識グラフ・配布の仕組み
-├── PROJECT_STATUS.md       # プロジェクト状態トラッキング
+├── PROJECT_STATUS.md       # 次のセッションへの引き継ぎメモ（6KB 以内）
 ├── dist-manifest.json      # 配布マニフェスト（配布対象・除外・言語別の唯一の定義）
 ├── install.sh              # dist-manifest.json に従った配布・更新スクリプト
 ├── package.json            # テストランナー設定（node:test）
@@ -46,7 +46,7 @@ claude-config-master/
 
 | 領域 | 実装 |
 |------|------|
-| **ハーネス** | hooks による機械的強制（ARCH-001〜006）・rules・settings.json・harness.json（コマンドの一元定義） |
+| **ハーネス** | hooks による機械的強制（ARCH-NNN）・rules・settings.json・harness.json（コマンドの一元定義） |
 | **ループ** | TDD（内側）→ review-loop（Ralph Wiggum）→ verification-loop → GC → improve-harness（外側）の入れ子ループ |
 | **グラフ** | CLAUDE.md を根とするドキュメント有向グラフ。ARCH-006 がエッジ（リンク）を、structure-test が到達可能性（孤立ノード）を検証 |
 
@@ -87,7 +87,8 @@ cd /path/to/claude-config-master
 ルートテンプレート・docs スケルトン（golden-rules.md、空の friction-log.md 含む）を展開し、
 双方向同期用に `.claude/master-path` を書き込みます。
 `update` モードでは新規ファイルの追加と hooks の上書きのみ行い、カスタマイズ済みファイルは報告してスキップします。
-`settings.json` は上書きしません。フックの起動コマンドが古い形（相対パス）のままなら、ARCH-004 違反として書き換え後の形を表示します。
+`settings.json`・`CLAUDE.md`・`PROJECT_STATUS.md` は上書きしません。更新の最後に、これらが新しい規則に違反していないかを検査し、違反があれば直し方を表示します
+（例: フックの起動コマンドが相対パスのまま → ARCH-004、状態ファイルが 6KB を超えている → ARCH-007）。
 
 ### 2. Bootstrap スキルで初期化する
 
@@ -127,7 +128,7 @@ PR 作成前に `.claude/skills/review-loop/SKILL.md` の手順で全員を通�
 | エージェント | ステージ | 審査観点 |
 |-------------|---------|---------|
 | `self-reviewer` | Stage 0 | 実装の自己批判的評価 |
-| `arch-reviewer` | Stage 1 | アーキテクチャ規則（ARCH-001〜006）|
+| `arch-reviewer` | Stage 1 | アーキテクチャ規則（ARCH-NNN）|
 | `style-reviewer` | Stage 1 | コーディングスタイル・命名・debug コード |
 | `test-reviewer` | Stage 1 | テストカバレッジ≥80%・独立性・フレーク判定 |
 | `security-reviewer` | Stage 2 | OWASP Top 10・シークレット漏洩 |
@@ -151,7 +152,7 @@ PR 作成前に `.claude/skills/review-loop/SKILL.md` の手順で全員を通�
 
 | スクリプト | タイミング | 動作 |
 |-----------|-----------|------|
-| `arch-lint.js` | Edit / Write 後 | ARCH-001〜006 検証（`.claude/` スコープ・修復手順付き）。違反は終了コード 2 でモデルに伝える |
+| `arch-lint.js` | Edit / Write 後 | ARCH-NNN 検証（`.claude/` 配下の配置、`CLAUDE.md` と `PROJECT_STATUS.md` の大きさ、リンク切れ。修復手順付き）。違反は終了コード 2 でモデルに伝える |
 | `structure-test.js` | 単体実行 / CI | 構造整合性・リンク・スキルの frontmatter・知識グラフ（孤立ドキュメント）検証 |
 | `quality-gate.js` | Edit / Write / MultiEdit 後 | TypeScript/JS: 設定のある整形ツール（Biome、なければ Prettier）。どちらの設定もなければ整形しない。Python: ruff |
 | `post-edit-typecheck.js` | .ts/.tsx 編集後 | `tsc --noEmit` で型チェックし、編集したファイルのエラーをモデルに伝える |

@@ -13,7 +13,7 @@
 |-----|------|----------|
 | `CLAUDE.md` | エージェントへのナビゲーション地図（≤100行） | 人間 / Claude |
 | `ARCHITECTURE.md` | このファイル。構造マップ | 人間 / Claude |
-| `PROJECT_STATUS.md` | 現在の進捗状態 | Claude / 人間 |
+| `PROJECT_STATUS.md` | 次のセッションへの引き継ぎメモ（現在地・次の一手・人間待ち。6KB 以内） | Claude / 人間 |
 | `.claude/agents/` | サブエージェント定義 (`.md`、frontmatter 必須) | improve-harness |
 | `.claude/hooks/` | Claude Code フック実装 (`.js`) | master から配布 |
 | `.claude/rules/` | コーディングルール (`{lang}/{category}.md`) | master から配布 |
@@ -50,6 +50,7 @@ docs/             →  自由にリンク可。docs/ 外への参照は相対パ
 | ARCH-004 | `.claude/settings.json` のフックコマンドは `$CLAUDE_PROJECT_DIR` 起点で書かれ、参照先のファイルが実在する |
 | ARCH-005 | `CLAUDE.md` は常に 100行以内 |
 | ARCH-006 | `.md` ファイル内の相対リンクが実在するファイルを指している（コードブロック内は除外）|
+| ARCH-007 | `PROJECT_STATUS.md` は 6KB（6,144 バイト）以内 |
 
 ## 知識グラフ
 
