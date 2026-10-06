@@ -86,23 +86,9 @@ describe('install.sh: typescript インストールの smoke test', () => {
     assert.equal(installed, source, 'settings.json がパス変換なしの同一コピーになっていない');
   });
 
-  test('settings.json の全フック参照先ファイルが実在する', () => {
-    const settings = JSON.parse(
-      fs.readFileSync(path.join(tmpDir, '.claude', 'settings.json'), 'utf8')
-    );
-    const missing = [];
-    for (const hookList of Object.values(settings.hooks || {})) {
-      for (const entry of hookList) {
-        for (const hook of entry.hooks || []) {
-          const match = String(hook.command || '').match(/node\s+(\S+\.js)/);
-          if (match) {
-            const hookFile = path.join(tmpDir, match[1]);
-            if (!fs.existsSync(hookFile)) missing.push(match[1]);
-          }
-        }
-      }
-    }
-    assert.equal(missing.length, 0, `参照先が存在しないフック: ${missing.join(', ')}`);
+  test('settings.json のフックコマンドが配布先の ARCH-004 に違反しない', () => {
+    const { checkArch004 } = require(path.join(tmpDir, '.claude', 'hooks', 'arch-lint.js'));
+    assert.deepEqual(checkArch004(tmpDir), []);
   });
 
   // ─── harness.json / master-path ───────────────────────────────────────────
@@ -278,6 +264,23 @@ describe('install.sh: update モード', () => {
 
     assert.equal(fs.readFileSync(skillPath, 'utf8'), customized, 'カスタマイズが上書きされた');
     assert.ok(output.includes('CHANGED'), 'CHANGED の報告がない');
+  });
+
+  test('settings.json のフックコマンドが相対パスのままなら ARCH-004 として知らせる', () => {
+    const settingsPath = path.join(tmpDir, '.claude', 'settings.json');
+    const current = fs.readFileSync(settingsPath, 'utf8');
+    fs.writeFileSync(settingsPath, current.replaceAll('\\"$CLAUDE_PROJECT_DIR\\"/', ''));
+
+    const output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
+    fs.writeFileSync(settingsPath, current);
+
+    assert.match(output, /ARCH-004/);
+    assert.ok(output.includes('node "$CLAUDE_PROJECT_DIR"/.claude/hooks/arch-lint.js'), '書き換え後の形が示されていない');
+  });
+
+  test('settings.json のフックコマンドが正しければ ARCH-004 を出さない', () => {
+    const output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
+    assert.doesNotMatch(output, /ARCH-004/);
   });
 
   test('カスタマイズ済み harness.json は保持される', () => {

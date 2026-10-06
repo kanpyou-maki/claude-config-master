@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const os = require('os');
 
-const { findUp, planFormat } = require('../.claude/hooks/quality-gate');
+const { findUp, planFormat, resolveRoot } = require('../.claude/hooks/quality-gate');
 
 function makeTmpDir() {
   return fs.realpathSync(fs.mkdtempSync(path.join(os.tmpdir(), 'quality-gate-')));
@@ -92,5 +92,15 @@ describe('planFormat: 編集したファイルに対する整形コマンドを�
     assert.deepEqual(planFormat(file, root), []);
     assert.deepEqual(planFormat(path.join(root, 'missing.ts'), root), []);
     assert.deepEqual(planFormat('', root), []);
+  });
+});
+
+describe('resolveRoot: プロジェクトのルートを決める', () => {
+  test('CLAUDE_PROJECT_DIR があれば作業ディレクトリより優先する', () => {
+    assert.equal(resolveRoot({ CLAUDE_PROJECT_DIR: '/project' }, '/project/backend'), '/project');
+  });
+
+  test('CLAUDE_PROJECT_DIR がなければ作業ディレクトリを使う', () => {
+    assert.equal(resolveRoot({}, '/project'), '/project');
   });
 });

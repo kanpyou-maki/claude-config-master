@@ -3,7 +3,7 @@
 **ステータス:** 承認済み  
 **作成日:** 2026-06-05  
 **関連 PRD:** [docs/prd.md](./prd.md)  
-**関連 ADR:** [ADR-001](./adr/ADR-001-knowledge-base-structure.md), [ADR-002](./adr/ADR-002-architecture-enforcement.md), [ADR-003](./adr/ADR-003-reviewer-agent-system.md)
+**関連 ADR:** [ADR-001](./adr/ADR-001-knowledge-base-structure.md), [ADR-002](./adr/ADR-002-architecture-enforcement.md), [ADR-003](./adr/ADR-003-reviewer-agent-system.md), [ADR-005](./adr/ADR-005-hook-io-contract.md)
 
 ---
 
@@ -125,7 +125,9 @@ claude-config-master/
 - `.claude/agents/` 以外への agent 定義の混入
 - `.claude/hooks/` 以外へのフック実装の配置（`.claude/` 配下のみ検査）
 - `.claude/rules/` の命名規則違反（`{lang}/{category}.md` 形式）
-- `settings.json` のフック参照が実ファイルと不整合
+- `settings.json` のフック参照が実ファイルと不整合、または起動コマンドが相対パス
+
+**モデルへの伝え方**（ADR-005）: 違反は stderr に書いて終了コード 2 で終わる。終了コード 0 の出力はモデルに届かない。編集時は編集したファイルに関係する規則だけを報告し、ファイルを指定しない実行（`commands.archLint`）で全体を検査する。
 
 **エラー出力形式**:
 ```
@@ -205,7 +207,7 @@ claude-config-master/
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/arch-lint.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/arch-lint.js"
           }
         ]
       }
@@ -216,7 +218,7 @@ claude-config-master/
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/quality-gate.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/quality-gate.js"
           }
         ]
       }

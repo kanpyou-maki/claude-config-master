@@ -49,11 +49,11 @@ install.sh        →  dist-manifest.json と .claude/, docs/, templates/ を読
 | ARCH-001 | エージェント定義 (`.md` with `name:` frontmatter) は `.claude/agents/` 以外に配置しない |
 | ARCH-002 | `.claude/` 配下のフック実装 (`.js`) は `.claude/hooks/` 以外に配置しない |
 | ARCH-003 | `.claude/rules/` 配下のファイルは `{lang}/{category}.md` の命名規則に従う |
-| ARCH-004 | `.claude/settings.json` が参照するフックファイルが実在する |
+| ARCH-004 | `.claude/settings.json` のフックコマンドは `$CLAUDE_PROJECT_DIR` 起点で書かれ、参照先のファイルが実在する |
 | ARCH-005 | `CLAUDE.md` は常に 100行以内 |
 | ARCH-006 | `.md` ファイル内の相対リンクが実在するファイルを指している（コードブロック内は除外）|
 
-詳細: [docs/design.md § 3.3](./docs/design.md)
+違反は stderr + 終了コード 2 でモデルに渡す（[ADR-005](./docs/adr/ADR-005-hook-io-contract.md)）。詳細: [docs/design.md § 3.3](./docs/design.md)
 
 ## 知識グラフ（グラフエンジニアリング）
 

@@ -51,6 +51,16 @@ function localOrNpx(dir, bin, args) {
 }
 
 /**
+ * プロジェクトのルートを返す。作業ディレクトリはサブディレクトリのことがあるので CLAUDE_PROJECT_DIR を優先する
+ * @param {NodeJS.ProcessEnv} env
+ * @param {string} cwd
+ * @returns {string}
+ */
+function resolveRoot(env, cwd) {
+  return env.CLAUDE_PROJECT_DIR || cwd;
+}
+
+/**
  * 編集したファイルに対して実行する整形コマンドの一覧を返す（実行はしない）
  * @param {string} filePath
  * @param {string} root プロジェクトのルート
@@ -78,7 +88,7 @@ function planFormat(filePath, root) {
   return [];
 }
 
-module.exports = { findUp, planFormat };
+module.exports = { findUp, planFormat, resolveRoot };
 
 if (require.main === module) {
   let raw = '';
@@ -94,14 +104,12 @@ if (require.main === module) {
     try {
       const input = JSON.parse(raw);
       const filePath = String(input.tool_input?.file_path || '');
-      const root = process.cwd();
+      const root = resolveRoot(process.env, process.cwd());
       for (const step of planFormat(path.resolve(root, filePath), root)) {
         spawnSync(step.command, step.args, { cwd: step.cwd, encoding: 'utf8', env: process.env });
       }
     } catch {
-      // Ignore parse errors — pass through
+      // Ignore parse errors — nothing to format
     }
-
-    process.stdout.write(raw);
   });
 }
