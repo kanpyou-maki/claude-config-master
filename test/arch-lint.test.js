@@ -372,7 +372,7 @@ describe('runChecks: 編集したファイルに関係する規則だけを検�
 
   const rulesOf = violations => violations.map(v => v.rule).sort();
 
-  test('ファイルの指定がなければ全体の規則（ARCH-004・005）を検査する', () => {
+  test('ファイルの指定がなければ全体の規則を検査する（この例では ARCH-004・005 に違反）', () => {
     const root = makeRootWithGlobalViolations();
     assert.deepEqual(rulesOf(runChecks('', root)), ['ARCH-004', 'ARCH-005']);
   });

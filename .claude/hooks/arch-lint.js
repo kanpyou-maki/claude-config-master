@@ -257,10 +257,13 @@ function checkArch006(filePath, root = process.cwd()) {
  * @param {string} [root]
  */
 function checkArch007(root = process.cwd()) {
-  const statusPath = path.join(root, STATUS_FILE);
-  if (!fs.existsSync(statusPath)) return null;
-
-  const bytes = fs.statSync(statusPath).size;
+  let bytes;
+  try {
+    bytes = fs.statSync(path.join(root, STATUS_FILE)).size;
+  } catch {
+    // 状態ファイルがない・読めない場合は検査の対象外
+    return null;
+  }
   if (bytes <= STATUS_FILE_MAX_BYTES) return null;
 
   const format = n => n.toLocaleString('en-US');
