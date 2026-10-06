@@ -150,7 +150,7 @@ function checkHookSyntax(root = process.cwd()) {
 function hasSkillDescription(content) {
   if (!content.startsWith('---')) return false;
   const end = content.indexOf('\n---', 3);
-  return end !== -1 && /^description:\s*\S/m.test(content.slice(0, end));
+  return end !== -1 && /^description:[ \t]*\S/m.test(content.slice(0, end));
 }
 
 /**

@@ -186,6 +186,13 @@ describe('ARCH-004: .claude/settings.json のフック参照先が実在し、$C
     assert.ok(results[0].fix.includes('node "$CLAUDE_PROJECT_DIR"/.claude/hooks/my-hook.js'));
   });
 
+  test('絶対パスのフックコマンドは相対パスの違反にしない', () => {
+    const root = makeTmpDir();
+    const hook = writeFile(root, 'shared/my-hook.js', '// hook');
+    writeSettings(root, `node ${hook}`);
+    assert.deepEqual(checkArch004(root), []);
+  });
+
   test('master 自身の settings.json は違反しない', () => {
     assert.deepEqual(checkArch004(path.resolve(__dirname, '..')), []);
   });

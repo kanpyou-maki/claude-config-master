@@ -130,6 +130,13 @@ describe('checkSkillFrontmatter: スキルは frontmatter に description を持
     assert.equal(checkSkillFrontmatter(root).length, 1);
   });
 
+  test('description の値が空なら違反を返す', () => {
+    const root = makeTmpDir();
+    writeFile(root, '.claude/skills/empty/SKILL.md', '---\nname: empty\ndescription:\nother: value\n---\n# empty');
+    writeFile(root, '.claude/skills/blank/SKILL.md', '---\nname: blank\ndescription:   \n---\n# blank');
+    assert.equal(checkSkillFrontmatter(root).length, 2);
+  });
+
   test('違反のあるスキルだけを返す', () => {
     const root = makeTmpDir();
     writeFile(root, '.claude/skills/good/SKILL.md', '---\ndescription: 使いどころ\n---\n# good');
