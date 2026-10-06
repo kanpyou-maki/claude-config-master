@@ -87,6 +87,7 @@ cd /path/to/claude-config-master
 ルートテンプレート・docs スケルトン（golden-rules.md / friction-log.md 含む）を展開し、
 双方向同期用に `.claude/master-path` を書き込みます。
 `update` モードでは新規ファイルの追加と hooks の上書きのみ行い、カスタマイズ済みファイルは報告してスキップします。
+`settings.json` は上書きしません。フックの起動コマンドが古い形（相対パス）のままなら、ARCH-004 違反として書き換え後の形を表示します。
 
 ### 2. Bootstrap スキルで初期化する
 
