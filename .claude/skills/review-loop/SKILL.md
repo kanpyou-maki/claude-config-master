@@ -1,3 +1,8 @@
+---
+name: review-loop
+description: 実装が終わってから PR を作る前に、レビュアーエージェント（self → arch / style / test → security / docs）を順に通過させる。「レビューして」「PR を作って」と言われたとき、および git push の前に使う。
+---
+
 # review-loop スキル — Ralph Wiggum ループ
 
 実装完了後、PR 作成前に全レビュアーを通過させるオーケストレーション手順。

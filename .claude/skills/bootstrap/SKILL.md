@@ -1,3 +1,8 @@
+---
+name: bootstrap
+description: install.sh でハーネスを展開した直後のプロジェクトを初期化する。テンプレートのままの CLAUDE.md・ARCHITECTURE.md・harness.json をプロジェクトの実態に合わせて書き換え、足りないものを検出して埋める。「ハーネスを入れたので初期設定して」「bootstrap して」と言われたときに使う。
+---
+
 # bootstrap スキル — 新規プロジェクトの自律的初期化
 
 `install.sh` によるスキャフォールド展開後、Claude が自律的にギャップを検出・修正・カスタマイズするスキル。
