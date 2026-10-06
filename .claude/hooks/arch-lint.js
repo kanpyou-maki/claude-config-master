@@ -25,6 +25,7 @@ const path = require('path');
 const CLAUDE_DIR = '.claude';
 const PROJECT_DIR_PREFIX = /^\$(?:CLAUDE_PROJECT_DIR|\{CLAUDE_PROJECT_DIR\})\//;
 const EXIT_REPORT_TO_MODEL = 2;
+const MAX_FIELD_LENGTH = 300;
 
 /** filePath が root/.claude/ 配下にあるか */
 function inClaudeDir(filePath, root) {
@@ -217,7 +218,8 @@ function checkArch006(filePath, root = process.cwd()) {
   const violations = [];
   // コードブロック内のリンクは検査対象外
   const stripped = content.replace(/```[\s\S]*?```/g, '');
-  const linkRegex = /\[([^\]]*)\]\(([^)]+)\)/g;
+  // リンクのテキストから「[」を除き、参照先の長さを制限する（角括弧が大量に並ぶ入力で検査時間が二乗に増えないように）
+  const linkRegex = /\[([^[\]]*)\]\(([^)]{1,2000})\)/g;
   const dir = path.dirname(filePath);
   let match;
 
@@ -247,8 +249,17 @@ function checkArch006(filePath, root = process.cwd()) {
 
 // ─── 出力フォーマット ────────────────────────────────────────────────────────
 
+/**
+ * 違反メッセージはモデルに渡る。ファイルパスやリンク先など入力由来の文字列を含むので、
+ * 制御文字（改行を含む）を空白に置き換え、長さを制限して 1 行に収める
+ */
+function toSingleLine(text) {
+  const flat = String(text).replace(/\s*[\u0000-\u001f\u007f]+\s*/g, ' ');
+  return flat.length > MAX_FIELD_LENGTH ? `${flat.slice(0, MAX_FIELD_LENGTH)}…` : flat;
+}
+
 function formatViolation(v) {
-  return `[arch-lint] ${v.rule} 違反: ${v.message}\n  ファイル: ${v.file}\n  修復手順: ${v.fix}`;
+  return `[arch-lint] ${v.rule} 違反: ${toSingleLine(v.message)}\n  ファイル: ${toSingleLine(v.file)}\n  修復手順: ${toSingleLine(v.fix)}`;
 }
 
 // ─── 全チェック実行 ──────────────────────────────────────────────────────────

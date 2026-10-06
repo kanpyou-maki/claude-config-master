@@ -40,7 +40,8 @@ function collectMdFiles(dir) {
 function extractRelativeLinks(filePath) {
   const raw = fs.readFileSync(filePath, 'utf8');
   const content = raw.replace(/```[\s\S]*?```/g, '');
-  const linkRegex = /\[([^\]]*)\]\(([^)]+)\)/g;
+  // arch-lint.js の ARCH-006 と同じ形。角括弧が大量に並ぶ入力で検査時間が二乗に増えないようにしている
+  const linkRegex = /\[([^[\]]*)\]\(([^)]{1,2000})\)/g;
   const dir = path.dirname(filePath);
   const links = [];
   let match;

@@ -33,6 +33,7 @@ ADR-002 で「アーキテクチャ規則はフックで機械的に強制する
 4. **`settings.json` の起動コマンドは `node "$CLAUDE_PROJECT_DIR"/.claude/hooks/<name>.js` と書く。** フックの中でプロジェクトのルートが要るときも、作業ディレクトリより `CLAUDE_PROJECT_DIR` を優先する。相対パスのコマンドは ARCH-004 違反とする
 5. **特定のコマンドだけに関係するフックは `if` フィールドで絞る**（例: `"if": "Bash(git push*)"`）
 6. **`arch-lint.js` は、編集したファイルに関係する規則だけを報告する。** ARCH-004 は `settings.json` と `.claude/hooks/` の編集時、ARCH-005 は `CLAUDE.md` の編集時だけ検査する。ファイルを指定しない実行（`harness.json` の `commands.archLint`）では従来どおり全体を検査する
+7. **モデルに渡すメッセージは 1 件 3 行に収める。** 違反メッセージにはファイルパスやリンク先など入力由来の文字列が入るので、`formatViolation` で制御文字（改行を含む）を空白に置き換え、各項目を 300 文字で切る
 
 検証は `test/hook-contract.test.js`（フックをプロセスとして起動し、終了コード・stdout・stderr を確認する）が担う。
 

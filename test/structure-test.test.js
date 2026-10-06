@@ -218,6 +218,17 @@ describe('checkDocLinks: docs/ + ルート + .claude/ の相対リンク整合�
   });
 });
 
+describe('checkDocLinks: 大きな入力', () => {
+  test('角括弧や閉じないリンクが大量に並ぶ .md でも時間がかからない', () => {
+    const root = makeTmpDir();
+    writeFile(root, 'docs/brackets.md', '['.repeat(80000));
+    writeFile(root, 'docs/unclosed.md', '[x]('.repeat(20000));
+    const start = process.hrtime.bigint();
+    assert.deepEqual(checkDocLinks(root), []);
+    assert.ok(Number(process.hrtime.bigint() - start) / 1e6 < 1000);
+  });
+});
+
 // ─── checkDocGraph ────────────────────────────────────────────────────────────
 
 describe('checkDocGraph: CLAUDE.md を根とする知識グラフの到達性', () => {
