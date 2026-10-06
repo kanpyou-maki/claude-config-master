@@ -31,6 +31,9 @@
   - フックの検出結果がモデルに届くようにした（終了コード 2 / `additionalContext`）
   - 起動コマンドを `$CLAUDE_PROJECT_DIR` 起点にし、相対パスを ARCH-004 違反にした
   - スキル 5 本に frontmatter を付け、structure-test で欠落を検出するようにした
+  - `quality-gate` は、整形ツールの設定があるプロジェクトだけを整形するようにした
+  - 摩擦ログの雛形を `templates/docs/` に分け、master 自身の摩擦を `docs/friction-log.md` に記録できるようにした（FRIC-001〜004）
+  - 違反メッセージの長さと改行を制限し、リンク検査が巨大な .md で遅くなる点を直した
 
 ## 次にやること
 
@@ -41,8 +44,6 @@
 - [ ] 状態ファイル（`PROJECT_STATUS.md` 等）に大きさの上限を設け、履歴を `docs/exec-plans/completed/` へ移す運用にする
 - [ ] 使われていないエージェント・スキル・rules の削除と、残すレビュアーのモデル指定の見直し
 - [ ] 文書どうしの食い違いの解消（行数の上限・フェーズの数・ADR ステータスの表記）
-- [ ] master の `quality-gate` が Prettier の既定値で整形し、既存のコードスタイル（シングルクォート）と合わない点の解消
-- [ ] 違反メッセージに入る入力由来の文字列（リンク先など）の長さと改行を制限する。リンク検査の正規表現が巨大な .md で遅くなる点もあわせて直す（security-reviewer の LOW 指摘）
 - [ ] gc-agent の定期実行運用の開始
 
 ## 決定事項
@@ -63,4 +64,5 @@ _なし_
 
 - 配布物の追加・除外は `dist-manifest.json` に宣言する（G-15）
 - エージェント・スキルはコマンドを `.claude/harness.json` から読む（G-14）
-- master の `docs/friction-log.md` は配布物の雛形を兼ねる（新規インストール時にそのままコピーされる）。master 自身の摩擦を書き込むと配布先に混ざる
+- `docs/friction-log.md` は master 自身の摩擦ログ。配布されるのは `templates/docs/friction-log.md` の空の雛形（`dist-manifest.json` の `docsTemplates`）。記録ルールやエントリ形式を変えるときは両方を直す
+- `quality-gate` は Biome か Prettier の設定があるときだけ整形する。master には設定がないので整形されない
