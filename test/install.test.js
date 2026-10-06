@@ -86,23 +86,9 @@ describe('install.sh: typescript インストールの smoke test', () => {
     assert.equal(installed, source, 'settings.json がパス変換なしの同一コピーになっていない');
   });
 
-  test('settings.json の全フック参照先ファイルが実在する', () => {
-    const settings = JSON.parse(
-      fs.readFileSync(path.join(tmpDir, '.claude', 'settings.json'), 'utf8')
-    );
-    const missing = [];
-    for (const hookList of Object.values(settings.hooks || {})) {
-      for (const entry of hookList) {
-        for (const hook of entry.hooks || []) {
-          const match = String(hook.command || '').match(/node\s+(\S+\.js)/);
-          if (match) {
-            const hookFile = path.join(tmpDir, match[1]);
-            if (!fs.existsSync(hookFile)) missing.push(match[1]);
-          }
-        }
-      }
-    }
-    assert.equal(missing.length, 0, `参照先が存在しないフック: ${missing.join(', ')}`);
+  test('settings.json のフックコマンドが配布先の ARCH-004 に違反しない', () => {
+    const { checkArch004 } = require(path.join(tmpDir, '.claude', 'hooks', 'arch-lint.js'));
+    assert.deepEqual(checkArch004(tmpDir), []);
   });
 
   // ─── harness.json / master-path ───────────────────────────────────────────
@@ -213,6 +199,29 @@ describe('install.sh: typescript インストールの smoke test', () => {
     }
   });
 
+  test('manifest の docsTemplates は雛形の内容で配布される', () => {
+    const entries = Object.entries(MANIFEST.docsTemplates);
+    assert.ok(entries.length > 0, 'docsTemplates が空');
+    for (const [dest, src] of entries) {
+      assert.equal(
+        fs.readFileSync(path.join(tmpDir, dest), 'utf8'),
+        fs.readFileSync(path.join(ROOT, src), 'utf8'),
+        `${dest} が ${src} と一致しない`
+      );
+    }
+  });
+
+  test('摩擦ログは空の雛形で配布され、master 自身のエントリを含まない', () => {
+    const installed = fs.readFileSync(path.join(tmpDir, 'docs', 'friction-log.md'), 'utf8');
+    assert.ok(installed.includes('## エントリ形式'), '記録ルールとエントリ形式がない');
+    assert.doesNotMatch(installed, /^### FRIC-\d+/m);
+  });
+
+  test('master の摩擦ログと雛形は、記録ルールとエントリ形式（「## エントリ」より前）が一致する', () => {
+    const head = file => fs.readFileSync(path.join(ROOT, file), 'utf8').split('\n## エントリ\n')[0];
+    assert.equal(head('docs/friction-log.md'), head('templates/docs/friction-log.md'));
+  });
+
   test('生成ファイル（QUALITY_SCORE.md / PLANS.md）が存在する', () => {
     for (const p of ['docs/QUALITY_SCORE.md', 'docs/PLANS.md']) {
       assert.ok(fs.existsSync(path.join(tmpDir, p)), `${p} が存在しない`);
@@ -278,6 +287,51 @@ describe('install.sh: update モード', () => {
 
     assert.equal(fs.readFileSync(skillPath, 'utf8'), customized, 'カスタマイズが上書きされた');
     assert.ok(output.includes('CHANGED'), 'CHANGED の報告がない');
+  });
+
+  test('settings.json のフックコマンドが相対パスのままなら ARCH-004 として知らせる', () => {
+    const settingsPath = path.join(tmpDir, '.claude', 'settings.json');
+    const current = fs.readFileSync(settingsPath, 'utf8');
+    fs.writeFileSync(settingsPath, current.replaceAll('\\"$CLAUDE_PROJECT_DIR\\"/', ''));
+
+    let output;
+    try {
+      output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
+    } finally {
+      fs.writeFileSync(settingsPath, current);
+    }
+
+    assert.match(output, /ARCH-004/);
+    assert.ok(output.includes('node "$CLAUDE_PROJECT_DIR"/.claude/hooks/arch-lint.js'), '書き換え後の形が示されていない');
+  });
+
+  test('settings.json のフックコマンドが正しければ ARCH-004 を出さない', () => {
+    const output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
+    assert.doesNotMatch(output, /ARCH-004/);
+  });
+
+  test('配布先を相対パスで指定しても最後まで更新する', () => {
+    const output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', path.basename(tmpDir)], {
+      cwd: path.dirname(tmpDir),
+      encoding: 'utf8',
+    });
+    assert.ok(output.includes('[7/7]'), '更新が途中で止まった');
+  });
+
+  test('settings.json のフック定義が壊れていても更新を止めない', () => {
+    const settingsPath = path.join(tmpDir, '.claude', 'settings.json');
+    const current = fs.readFileSync(settingsPath, 'utf8');
+    fs.writeFileSync(settingsPath, JSON.stringify({ hooks: { PostToolUse: null } }));
+
+    let output;
+    try {
+      output = execFileSync('bash', [INSTALL_SH, 'update', 'typescript', tmpDir], { cwd: ROOT, encoding: 'utf8' });
+    } finally {
+      fs.writeFileSync(settingsPath, current);
+    }
+
+    assert.ok(output.includes('[7/7]'), '更新が途中で止まった');
+    assert.ok(output.includes('確認できませんでした'), '確認できなかったことが伝わらない');
   });
 
   test('カスタマイズ済み harness.json は保持される', () => {

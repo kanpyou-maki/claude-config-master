@@ -3,7 +3,7 @@
 **ステータス:** 承認済み  
 **作成日:** 2026-06-05  
 **関連 PRD:** [docs/prd.md](./prd.md)  
-**関連 ADR:** [ADR-001](./adr/ADR-001-knowledge-base-structure.md), [ADR-002](./adr/ADR-002-architecture-enforcement.md), [ADR-003](./adr/ADR-003-reviewer-agent-system.md)
+**関連 ADR:** [ADR-001](./adr/ADR-001-knowledge-base-structure.md), [ADR-002](./adr/ADR-002-architecture-enforcement.md), [ADR-003](./adr/ADR-003-reviewer-agent-system.md), [ADR-005](./adr/ADR-005-hook-io-contract.md)
 
 ---
 
@@ -88,7 +88,7 @@ claude-config-master/
 │   │   └── python-patterns/ python-testing/
 │   ├── settings.json
 │   └── harness.json             # コマンド定義（配布先では install.sh が言語別に生成）
-├── templates/                   # 配布用ルートテンプレート
+├── templates/                   # 配布用の雛形（ルートテンプレート・docs/friction-log.md）
 ├── dist-manifest.json           # 配布マニフェスト（配布対象・除外の唯一の定義）
 └── install.sh
 ```
@@ -125,7 +125,9 @@ claude-config-master/
 - `.claude/agents/` 以外への agent 定義の混入
 - `.claude/hooks/` 以外へのフック実装の配置（`.claude/` 配下のみ検査）
 - `.claude/rules/` の命名規則違反（`{lang}/{category}.md` 形式）
-- `settings.json` のフック参照が実ファイルと不整合
+- `settings.json` のフック参照が実ファイルと不整合、または起動コマンドが相対パス
+
+**モデルへの伝え方**（ADR-005）: 違反は stderr に書いて終了コード 2 で終わる。終了コード 0 の出力はモデルに届かない。編集時は編集したファイルに関係する規則だけを報告し、ファイルを指定しない実行（`commands.archLint`）で全体を検査する。
 
 **エラー出力形式**:
 ```
@@ -205,7 +207,7 @@ claude-config-master/
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/arch-lint.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/arch-lint.js"
           }
         ]
       }
@@ -216,7 +218,7 @@ claude-config-master/
         "hooks": [
           {
             "type": "command",
-            "command": "node .claude/hooks/quality-gate.js"
+            "command": "node \"$CLAUDE_PROJECT_DIR\"/.claude/hooks/quality-gate.js"
           }
         ]
       }
@@ -297,7 +299,7 @@ claude-config-master/
 | エージェント | 審査観点 | 代表的な合否基準 |
 |-------------|---------|----------------|
 | `self-reviewer` | 実装者による批判的な自己評価 | 意図通りに動くか・見落としはないか |
-| `arch-reviewer` | アーキテクチャ規則（ARCH-001〜005）・依存方向 | 構造違反ゼロ |
+| `arch-reviewer` | アーキテクチャ規則（ARCH-001〜006）・依存方向 | 構造違反ゼロ |
 | `style-reviewer` | コーディングスタイル・命名・ファイルサイズ・debug コード禁止 | 黄金原則 G-06〜G-09 クリア |
 | `security-reviewer` | OWASP Top 10・シークレット漏洩・認証/認可 | 重大脆弱性ゼロ |
 | `test-reviewer` | カバレッジ≥80%・テスト独立性・エッジケース | 閾値クリア |

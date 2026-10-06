@@ -31,7 +31,7 @@ claude-config-master/
 │   ├── skills/             # 再利用可能なスキル集（9種）
 │   ├── settings.json       # フック・パーミッション設定（配布先へそのままコピー）
 │   └── harness.json        # このリポジトリのコマンド定義（配布先では言語別に生成）
-├── templates/              # 配布用ルートテンプレート（CLAUDE.md 等の雛形）
+├── templates/              # 配布用の雛形（CLAUDE.md 等のルートテンプレート、docs/friction-log.md）
 ├── test/                   # フック・install.sh の単体テスト
 └── docs/                   # 知識ベース（一部は docsSkeleton として配布）
     ├── adr/                # アーキテクチャ決定レコード
@@ -84,9 +84,10 @@ cd /path/to/claude-config-master
 ```
 
 スクリプトは `dist-manifest.json` に従って agents・hooks・rules・skills・settings.json・harness.json・
-ルートテンプレート・docs スケルトン（golden-rules.md / friction-log.md 含む）を展開し、
+ルートテンプレート・docs スケルトン（golden-rules.md、空の friction-log.md 含む）を展開し、
 双方向同期用に `.claude/master-path` を書き込みます。
 `update` モードでは新規ファイルの追加と hooks の上書きのみ行い、カスタマイズ済みファイルは報告してスキップします。
+`settings.json` は上書きしません。フックの起動コマンドが古い形（相対パス）のままなら、ARCH-004 違反として書き換え後の形を表示します。
 
 ### 2. Bootstrap スキルで初期化する
 
@@ -150,11 +151,11 @@ PR 作成前に `.claude/skills/review-loop/SKILL.md` の手順で全員を通�
 
 | スクリプト | タイミング | 動作 |
 |-----------|-----------|------|
-| `arch-lint.js` | Edit / Write 後 | ARCH-001〜006 検証（`.claude/` スコープ・修復手順付き）|
-| `structure-test.js` | 単体実行 / CI | 構造整合性・リンク・知識グラフ（孤立ドキュメント）検証 |
-| `quality-gate.js` | Edit / Write / MultiEdit 後 | TypeScript/JS: Biome or Prettier、Python: ruff |
-| `post-edit-typecheck.js` | .ts/.tsx 編集後 | `tsc --noEmit` で型チェック |
-| `pre-bash-git-push-reminder.js` | git push 前 | 確認メッセージを表示 |
+| `arch-lint.js` | Edit / Write 後 | ARCH-001〜006 検証（`.claude/` スコープ・修復手順付き）。違反は終了コード 2 でモデルに伝える |
+| `structure-test.js` | 単体実行 / CI | 構造整合性・リンク・スキルの frontmatter・知識グラフ（孤立ドキュメント）検証 |
+| `quality-gate.js` | Edit / Write / MultiEdit 後 | TypeScript/JS: 設定のある整形ツール（Biome、なければ Prettier）。どちらの設定もなければ整形しない。Python: ruff |
+| `post-edit-typecheck.js` | .ts/.tsx 編集後 | `tsc --noEmit` で型チェックし、編集したファイルのエラーをモデルに伝える |
+| `pre-bash-git-push-reminder.js` | git push 前 | review-loop を通したかの確認をモデルに渡す（ブロックはしない）|
 
 ```bash
 # テスト実行

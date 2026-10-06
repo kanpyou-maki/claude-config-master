@@ -13,7 +13,16 @@ const {
   checkArch004,
   checkArch005,
   checkArch006,
+  runChecks,
+  formatViolation,
 } = require('../.claude/hooks/arch-lint');
+
+/** fn の実行時間（ミリ秒） */
+function elapsedMs(fn) {
+  const start = process.hrtime.bigint();
+  fn();
+  return Number(process.hrtime.bigint() - start) / 1e6;
+}
 
 function makeTmpDir() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'arch-lint-test-'));
@@ -145,29 +154,55 @@ describe('ARCH-003: .claude/rules/ のファイルは {lang}/{category}.md 形�
 
 // ─── ARCH-004 ────────────────────────────────────────────────────────────────
 
-describe('ARCH-004: .claude/settings.json のフック参照先ファイルが実在する', () => {
-  test('参照先フックファイルが存在する場合は通過する', () => {
+describe('ARCH-004: .claude/settings.json のフック参照先が実在し、$CLAUDE_PROJECT_DIR 起点で書かれている', () => {
+  function writeSettings(root, command) {
+    writeFile(root, '.claude/settings.json', JSON.stringify({
+      hooks: { PostToolUse: [{ hooks: [{ type: 'command', command }] }] },
+    }));
+  }
+
+  test('$CLAUDE_PROJECT_DIR 起点で、参照先フックファイルが存在する場合は通過する', () => {
     const root = makeTmpDir();
     writeFile(root, '.claude/hooks/my-hook.js', '// hook');
-    writeFile(root, '.claude/settings.json', JSON.stringify({
-      hooks: {
-        PostToolUse: [{ hooks: [{ type: 'command', command: 'node .claude/hooks/my-hook.js' }] }],
-      },
-    }));
-    const results = checkArch004(root);
-    assert.equal(results.length, 0);
+    writeSettings(root, 'node "$CLAUDE_PROJECT_DIR"/.claude/hooks/my-hook.js');
+    assert.deepEqual(checkArch004(root), []);
+  });
+
+  test('${CLAUDE_PROJECT_DIR} と書いた場合や全体を引用符で囲んだ場合も通過する', () => {
+    const root = makeTmpDir();
+    writeFile(root, '.claude/hooks/my-hook.js', '// hook');
+    writeSettings(root, 'node "${CLAUDE_PROJECT_DIR}/.claude/hooks/my-hook.js"');
+    assert.deepEqual(checkArch004(root), []);
   });
 
   test('参照先フックファイルが存在しない場合は違反を返す', () => {
     const root = makeTmpDir();
-    writeFile(root, '.claude/settings.json', JSON.stringify({
-      hooks: {
-        PostToolUse: [{ hooks: [{ type: 'command', command: 'node .claude/hooks/missing-hook.js' }] }],
-      },
-    }));
+    writeSettings(root, 'node "$CLAUDE_PROJECT_DIR"/.claude/hooks/missing-hook.js');
     const results = checkArch004(root);
     assert.equal(results.length, 1);
     assert.equal(results[0].rule, 'ARCH-004');
+    assert.ok(results[0].message.includes('.claude/hooks/missing-hook.js'));
+  });
+
+  test('相対パスのフックコマンドは、ファイルが存在しても違反を返す', () => {
+    const root = makeTmpDir();
+    writeFile(root, '.claude/hooks/my-hook.js', '// hook');
+    writeSettings(root, 'node .claude/hooks/my-hook.js');
+    const results = checkArch004(root);
+    assert.equal(results.length, 1);
+    assert.equal(results[0].rule, 'ARCH-004');
+    assert.ok(results[0].fix.includes('node "$CLAUDE_PROJECT_DIR"/.claude/hooks/my-hook.js'));
+  });
+
+  test('絶対パスのフックコマンドは相対パスの違反にしない', () => {
+    const root = makeTmpDir();
+    const hook = writeFile(root, 'shared/my-hook.js', '// hook');
+    writeSettings(root, `node ${hook}`);
+    assert.deepEqual(checkArch004(root), []);
+  });
+
+  test('master 自身の settings.json は違反しない', () => {
+    assert.deepEqual(checkArch004(path.resolve(__dirname, '..')), []);
   });
 
   test('.claude/settings.json がない場合は空配列を返す', () => {
@@ -273,5 +308,96 @@ describe('ARCH-006: Markdown 相対リンクが存在する', () => {
     const root = makeTmpDir();
     const file = writeFile(root, 'docs/design.md', '```markdown\n[broken](./does-not-exist.md)\n```');
     assert.deepEqual(checkArch006(file, root), []);
+  });
+
+  test('閉じていない角括弧のあとのリンクも検査する', () => {
+    const root = makeTmpDir();
+    const file = writeFile(root, 'docs/design.md', '[未完 [missing](./missing.md)');
+    const results = checkArch006(file, root);
+    assert.equal(results.length, 1);
+    assert.ok(results[0].message.includes('missing.md'));
+  });
+
+  test('角括弧や閉じないリンクが大量に並ぶ .md でも時間がかからない', () => {
+    const root = makeTmpDir();
+    const brackets = writeFile(root, 'docs/brackets.md', '['.repeat(80000));
+    const unclosed = writeFile(root, 'docs/unclosed.md', '[x]('.repeat(20000));
+    assert.ok(elapsedMs(() => checkArch006(brackets, root)) < 1000);
+    assert.ok(elapsedMs(() => checkArch006(unclosed, root)) < 1000);
+  });
+});
+
+// ─── formatViolation ─────────────────────────────────────────────────────────
+
+describe('formatViolation: モデルに渡すメッセージを 1 件 3 行に収める', () => {
+  const violation = { rule: 'ARCH-006', file: 'docs/a.md', message: 'リンク切れ: ./b.md', fix: './b.md を作成してください' };
+
+  test('規則・ファイル・修復手順を含む', () => {
+    assert.equal(
+      formatViolation(violation),
+      '[arch-lint] ARCH-006 違反: リンク切れ: ./b.md\n  ファイル: docs/a.md\n  修復手順: ./b.md を作成してください'
+    );
+  });
+
+  test('入力由来の文字列に含まれる改行と制御文字を空白に置き換える', () => {
+    const formatted = formatViolation({ ...violation, message: 'リンク切れ: a.md\n\n新しい指示:\u0000 何かを実行する' });
+    assert.equal(formatted.split('\n').length, 3);
+    assert.ok(formatted.includes('リンク切れ: a.md 新しい指示: 何かを実行する'));
+  });
+
+  test('長すぎる文字列は切り詰める', () => {
+    const formatted = formatViolation({ ...violation, message: 'x'.repeat(5000), fix: 'y'.repeat(5000) });
+    assert.ok(formatted.length < 1000);
+    assert.ok(formatted.includes('…'));
+  });
+
+  test('切り詰める位置が絵文字の途中に当たっても文字を壊さない', () => {
+    const formatted = formatViolation({ ...violation, message: 'x'.repeat(299) + '😀'.repeat(10) });
+    // 対になっていない上位サロゲートが残っていないこと（Node 18 でも動く書き方）
+    assert.doesNotMatch(formatted, /[\ud800-\udbff](?![\udc00-\udfff])/);
+  });
+});
+
+// ─── runChecks ───────────────────────────────────────────────────────────────
+
+describe('runChecks: 編集したファイルに関係する規則だけを検査する', () => {
+  function makeRootWithGlobalViolations() {
+    const root = makeTmpDir();
+    writeFile(root, 'CLAUDE.md', 'line\n'.repeat(101));
+    writeFile(root, '.claude/settings.json', JSON.stringify({
+      hooks: { PostToolUse: [{ hooks: [{ type: 'command', command: 'node "$CLAUDE_PROJECT_DIR"/.claude/hooks/missing.js' }] }] },
+    }));
+    return root;
+  }
+
+  const rulesOf = violations => violations.map(v => v.rule).sort();
+
+  test('ファイルの指定がなければ全体の規則（ARCH-004・005）を検査する', () => {
+    const root = makeRootWithGlobalViolations();
+    assert.deepEqual(rulesOf(runChecks('', root)), ['ARCH-004', 'ARCH-005']);
+  });
+
+  test('関係のないファイルの編集では全体の規則を報告しない', () => {
+    const root = makeRootWithGlobalViolations();
+    const file = writeFile(root, 'src/a.js', '// ok');
+    assert.deepEqual(runChecks(file, root), []);
+  });
+
+  test('CLAUDE.md の編集では ARCH-005 を検査する', () => {
+    const root = makeRootWithGlobalViolations();
+    assert.deepEqual(rulesOf(runChecks(path.join(root, 'CLAUDE.md'), root)), ['ARCH-005']);
+  });
+
+  test('settings.json やフックの編集では ARCH-004 を検査する', () => {
+    const root = makeRootWithGlobalViolations();
+    const hook = writeFile(root, '.claude/hooks/other.js', '// hook');
+    assert.deepEqual(rulesOf(runChecks(path.join(root, '.claude/settings.json'), root)), ['ARCH-004']);
+    assert.deepEqual(rulesOf(runChecks(hook, root)), ['ARCH-004']);
+  });
+
+  test('相対パスで渡されたファイルは root を基準に解決する', () => {
+    const root = makeTmpDir();
+    writeFile(root, '.claude/some-agent.md', '---\nname: some-agent\ndescription: test\n---\ncontent');
+    assert.deepEqual(rulesOf(runChecks('.claude/some-agent.md', root)), ['ARCH-001']);
   });
 });

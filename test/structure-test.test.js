@@ -10,6 +10,7 @@ const {
   checkAdrExists,
   checkSettingsJson,
   checkHookSyntax,
+  checkSkillFrontmatter,
   checkDocLinks,
   checkDocGraph,
 } = require('../.claude/hooks/structure-test');
@@ -105,6 +106,56 @@ describe('checkHookSyntax: .claude/hooks/ のフックに構文エラーがな�
   });
 });
 
+// ─── checkSkillFrontmatter ────────────────────────────────────────────────────
+
+describe('checkSkillFrontmatter: スキルは frontmatter に description を持つ', () => {
+  test('description があれば通過する', () => {
+    const root = makeTmpDir();
+    writeFile(root, '.claude/skills/deploy/SKILL.md', '---\nname: deploy\ndescription: 本番へ反映する。「デプロイして」と言われたときに使う。\n---\n# deploy');
+    assert.deepEqual(checkSkillFrontmatter(root), []);
+  });
+
+  test('frontmatter がなければ違反を返す', () => {
+    const root = makeTmpDir();
+    writeFile(root, '.claude/skills/deploy/SKILL.md', '# deploy スキル\n\n手順...');
+    const results = checkSkillFrontmatter(root);
+    assert.equal(results.length, 1);
+    assert.ok(results[0].message.includes('.claude/skills/deploy/SKILL.md'));
+    assert.ok(results[0].fix.length > 0);
+  });
+
+  test('frontmatter に description がなければ違反を返す', () => {
+    const root = makeTmpDir();
+    writeFile(root, '.claude/skills/deploy/SKILL.md', '---\nname: deploy\n---\n\ndescription: 本文に書いても数えない');
+    assert.equal(checkSkillFrontmatter(root).length, 1);
+  });
+
+  test('description の値が空なら違反を返す', () => {
+    const root = makeTmpDir();
+    writeFile(root, '.claude/skills/empty/SKILL.md', '---\nname: empty\ndescription:\nother: value\n---\n# empty');
+    writeFile(root, '.claude/skills/blank/SKILL.md', '---\nname: blank\ndescription:   \n---\n# blank');
+    assert.equal(checkSkillFrontmatter(root).length, 2);
+  });
+
+  test('違反のあるスキルだけを返す', () => {
+    const root = makeTmpDir();
+    writeFile(root, '.claude/skills/good/SKILL.md', '---\ndescription: 使いどころ\n---\n# good');
+    writeFile(root, '.claude/skills/bad/SKILL.md', '# bad');
+    writeFile(root, '.claude/skills/notes/README.md', '# SKILL.md のないディレクトリは対象外');
+    const results = checkSkillFrontmatter(root);
+    assert.equal(results.length, 1);
+    assert.ok(results[0].message.includes('bad'));
+  });
+
+  test('.claude/skills/ が存在しない場合は空配列を返す', () => {
+    assert.deepEqual(checkSkillFrontmatter(makeTmpDir()), []);
+  });
+
+  test('master 自身のスキルは違反しない', () => {
+    assert.deepEqual(checkSkillFrontmatter(path.resolve(__dirname, '..')), []);
+  });
+});
+
 // ─── checkDocLinks ────────────────────────────────────────────────────────────
 
 describe('checkDocLinks: docs/ + ルート + .claude/ の相対リンク整合性', () => {
@@ -164,6 +215,17 @@ describe('checkDocLinks: docs/ + ルート + .claude/ の相対リンク整合�
     writeFile(root, 'docs/design.md', '```markdown\n[broken](./does-not-exist.md)\n```');
     const results = checkDocLinks(root);
     assert.equal(results.length, 0);
+  });
+});
+
+describe('checkDocLinks: 大きな入力', () => {
+  test('角括弧や閉じないリンクが大量に並ぶ .md でも時間がかからない', () => {
+    const root = makeTmpDir();
+    writeFile(root, 'docs/brackets.md', '['.repeat(80000));
+    writeFile(root, 'docs/unclosed.md', '[x]('.repeat(20000));
+    const start = process.hrtime.bigint();
+    assert.deepEqual(checkDocLinks(root), []);
+    assert.ok(Number(process.hrtime.bigint() - start) / 1e6 < 1000);
   });
 });
 
