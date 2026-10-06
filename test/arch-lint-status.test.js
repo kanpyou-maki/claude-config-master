@@ -92,6 +92,15 @@ describe('runChecks: ARCH-007 を検査する場面', () => {
     assert.deepEqual(runChecks(file, root), []);
   });
 
+  test('settings.json のフック定義が壊れていても、ほかの規則の検査を続ける', () => {
+    const root = makeRootWithLargeStatus();
+    writeFile(root, '.claude/settings.json', JSON.stringify({ hooks: { PostToolUse: null, PreToolUse: [null, { hooks: 'x' }] } }));
+    assert.deepEqual(rulesOf(runChecks('', root)), ['ARCH-007']);
+
+    writeFile(root, '.claude/settings.json', 'null');
+    assert.deepEqual(rulesOf(runChecks('', root)), ['ARCH-007']);
+  });
+
   test('サブディレクトリにある同名のファイルは対象にしない', () => {
     const root = makeTmpDir();
     const file = writeFile(root, 'packages/app/PROJECT_STATUS.md', 'a'.repeat(LIMIT_BYTES + 1));
@@ -106,6 +115,6 @@ describe('master 自身', () => {
 
   test('状態ファイルは、引き継ぎメモの 4 節だけを持つ', () => {
     const headings = fs.readFileSync(path.join(ROOT, 'PROJECT_STATUS.md'), 'utf8').match(/^## .+$/gm);
-    assert.deepEqual(headings, ['## 現在のフェーズ', '## 進行中', '## 次にやること', '## 人間待ち']);
+    assert.deepEqual(headings, ['## 現在のフェーズ', '## 進行中', '## 次にやること', '## 人間待ち'], '節は ADR-006 の 4 つ。変えるときは ADR を更新する');
   });
 });

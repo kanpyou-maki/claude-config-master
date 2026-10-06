@@ -40,15 +40,15 @@
 
 | 対象 | テストファイル（件数） | 行カバレッジ | 目標 | 状態 |
 |------|----------------------|-------------|------|------|
-| `.claude/hooks/arch-lint.js` | `arch-lint.test.js`（46）、`arch-lint-status.test.js`（12） | 97% | 80% | ✅ 達成 |
+| `.claude/hooks/arch-lint.js` | `arch-lint.test.js`（46）、`arch-lint-status.test.js`（13） | 97% | 80% | ✅ 達成 |
 | `.claude/hooks/structure-test.js` | `structure-test.test.js`（32） | 86% | 80% | ✅ 達成 |
 | `.claude/hooks/quality-gate.js` | `quality-gate.test.js`（14） | 97% | 80% | ✅ 達成 |
 | `.claude/hooks/post-edit-typecheck.js` | `post-edit-typecheck.test.js`（5） | 97% | 80% | ✅ 達成 |
 | `.claude/hooks/pre-bash-git-push-reminder.js` | `hook-contract.test.js` | 100% | 80% | ✅ 達成 |
 | フックの入出力規約（ADR-005） | `hook-contract.test.js`（13） | — | — | ✅ 達成 |
-| `install.sh` (smoke test) | `install.test.js`（30） | — | — | ✅ 達成 |
+| `install.sh` (smoke test) | `install.test.js`（31） | — | — | ✅ 達成 |
 
-**合計: 152/152 テスト通過**
+**合計: 154/154 テスト通過**
 
 ### アーキテクチャ規則遵守 (100/100)
 

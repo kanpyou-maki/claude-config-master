@@ -149,32 +149,33 @@ function checkArch004(root = process.cwd()) {
     return [];
   }
 
-  const violations = [];
-  const hookEvents = settings.hooks || {};
+  // 形の崩れた定義（配列でない・要素が null など）は読み飛ばす。ここで例外を出すと、ほかの規則の検査まで止まる
+  const handlers = Object.values((settings && settings.hooks) || {})
+    .filter(Array.isArray)
+    .flat()
+    .flatMap(entry => (entry && Array.isArray(entry.hooks) ? entry.hooks : []))
+    .filter(Boolean);
 
-  for (const hookList of Object.values(hookEvents)) {
-    for (const entry of hookList) {
-      for (const hook of entry.hooks || []) {
-        const parsed = parseHookCommand(String(hook.command || ''));
-        if (!parsed) continue;
-        const { script, anchored } = parsed;
-        if (!fs.existsSync(path.resolve(root, script))) {
-          violations.push({
-            rule: 'ARCH-004',
-            file: '.claude/settings.json',
-            message: `settings.json が存在しないフックを参照しています: ${script}`,
-            fix: `${script} を作成するか、settings.json から該当エントリを削除してください`,
-          });
-        }
-        if (!anchored && !path.isAbsolute(script)) {
-          violations.push({
-            rule: 'ARCH-004',
-            file: '.claude/settings.json',
-            message: `フックのコマンドが相対パスです（作業ディレクトリがプロジェクト直下でないと起動に失敗します）: ${script}`,
-            fix: `settings.json の command を次の形に書き換えてください: node "$CLAUDE_PROJECT_DIR"/${script}`,
-          });
-        }
-      }
+  const violations = [];
+  for (const hook of handlers) {
+    const parsed = parseHookCommand(String(hook.command || ''));
+    if (!parsed) continue;
+    const { script, anchored } = parsed;
+    if (!fs.existsSync(path.resolve(root, script))) {
+      violations.push({
+        rule: 'ARCH-004',
+        file: '.claude/settings.json',
+        message: `settings.json が存在しないフックを参照しています: ${script}`,
+        fix: `${script} を作成するか、settings.json から該当エントリを削除してください`,
+      });
+    }
+    if (!anchored && !path.isAbsolute(script)) {
+      violations.push({
+        rule: 'ARCH-004',
+        file: '.claude/settings.json',
+        message: `フックのコマンドが相対パスです（作業ディレクトリがプロジェクト直下でないと起動に失敗します）: ${script}`,
+        fix: `settings.json の command を次の形に書き換えてください: node "$CLAUDE_PROJECT_DIR"/${script}`,
+      });
     }
   }
 
@@ -261,7 +262,7 @@ function checkArch007(root = process.cwd()) {
   try {
     bytes = fs.statSync(path.join(root, STATUS_FILE)).size;
   } catch {
-    // 状態ファイルがない・読めない場合は検査の対象外
+    // 状態ファイルがない・大きさを調べられない場合は検査の対象外
     return null;
   }
   if (bytes <= STATUS_FILE_MAX_BYTES) return null;
