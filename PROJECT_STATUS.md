@@ -44,6 +44,8 @@
 - [ ] 状態ファイル（`PROJECT_STATUS.md` 等）に大きさの上限を設け、履歴を `docs/exec-plans/completed/` へ移す運用にする
 - [ ] 使われていないエージェント・スキル・rules の削除と、残すレビュアーのモデル指定の見直し
 - [ ] 文書どうしの食い違いの解消（行数の上限・フェーズの数・ADR ステータスの表記）
+- [ ] `quality-gate` は、整形ツールの設定があってもローカルに実体がないと `npx` がレジストリから取得して実行する。`npx --no-install` にするかを決める（security-reviewer の LOW 指摘。Biome・Prettier 共通で、以前からの挙動）
+- [ ] 300 行を超えたファイル（`arch-lint.js`・`structure-test.js`・一部のテスト）の分割（style-reviewer の MEDIUM 指摘）
 - [ ] gc-agent の定期実行運用の開始
 
 ## 決定事項
