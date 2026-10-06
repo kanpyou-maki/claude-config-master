@@ -1,6 +1,6 @@
 ---
 name: arch-reviewer
-description: Stage 1 reviewer in the Ralph Wiggum loop. Validates architecture rules ARCH-001~006 by running .claude/hooks/arch-lint.js and .claude/hooks/structure-test.js, and checks dependency direction from ARCHITECTURE.md. Returns PASS or BLOCK.
+description: Stage 1 reviewer in the Ralph Wiggum loop. Validates architecture rules ARCH-NNN by running .claude/hooks/arch-lint.js and .claude/hooks/structure-test.js, and checks dependency direction from ARCHITECTURE.md. Returns PASS or BLOCK.
 tools: ["Read", "Bash", "Grep", "Glob"]
 model: sonnet
 ---
@@ -30,14 +30,14 @@ model: sonnet
 ---
 ```
 
-**BLOCK 条件:** ARCH-001〜006 のいずれかの違反、構造テスト失敗、または ARCHITECTURE.md に記載された依存方向への違反
+**BLOCK 条件:** ARCH-NNN のいずれかの違反、構造テスト失敗、または ARCHITECTURE.md に記載された依存方向への違反
 
 ## 実行手順
 
 ### 1. 機械的チェック
 
 ```bash
-# ARCH-001〜006 の自動検証
+# ARCH-NNN の自動検証
 echo '{"tool_input":{"file_path":""}}' | node .claude/hooks/arch-lint.js 2>&1
 
 # 構造整合性テスト（知識グラフの孤立ノード検出を含む）

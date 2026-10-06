@@ -3,7 +3,7 @@
 各ドメイン・アーキテクチャ層の品質状態を追跡するファイル。
 `.claude/agents/gc-agent.md` がフェーズ完了時および定期実行時に更新する。
 
-**最終更新:** 2026-10-06（テストカバレッジの節のみ。ほかの節は 2026-06-05 時点のままで、原則の数などが古い）
+**最終更新:** 2026-10-07（テストカバレッジの節のみ。ほかの節は 2026-06-05 時点のままで、原則の数などが古い）
 
 ---
 
@@ -13,7 +13,7 @@
 |------|--------|--------|------------|
 | ドキュメント整合性 | 98/100 | +3 | Q-05〜08 は長期観察中 |
 | テストカバレッジ | 95/100 | +5 | 全フックが行カバレッジ 80% 以上。フックの入出力はプロセスとして検証（ADR-005）|
-| アーキテクチャ規則遵守 | 100/100 | 0 | ARCH-001〜006 全自動検証済み |
+| アーキテクチャ規則遵守 | 100/100 | 0 | ARCH-NNN 全自動検証済み |
 | 黄金原則達成率 | 11/12 | +1 | G-12（QUALITY_SCORE 更新運用）は GC 初回実行後に達成 |
 
 ---
@@ -27,7 +27,7 @@
 | PRD 作成済み | ✅ | `docs/prd.md` |
 | Design Doc 作成済み | ✅ | `docs/design.md`（セクション7まで） |
 | ADR 作成済み | ✅ | ADR-001, ADR-002, ADR-003 |
-| ARCHITECTURE.md 作成済み | ✅ | ARCH-001〜006 掲載 |
+| ARCHITECTURE.md 作成済み | ✅ | ARCH-NNN 掲載 |
 | exec-plans 運用済み | ✅ | PLAN-20260605 完了・completed/ に移動済み |
 | golden-rules.md 作成済み | ✅ | G-01〜G-12 定義済み |
 | core-beliefs.md 作成済み | ✅ | 原則 1〜9 定義済み |
@@ -36,19 +36,19 @@
 
 ### テストカバレッジ (95/100)
 
-行カバレッジは `node --test --experimental-test-coverage 'test/**/*.test.js'` の実測値（2026-10-06）。
+行カバレッジは `node --test --experimental-test-coverage 'test/**/*.test.js'` の実測値（2026-10-07）。
 
 | 対象 | テストファイル（件数） | 行カバレッジ | 目標 | 状態 |
 |------|----------------------|-------------|------|------|
-| `.claude/hooks/arch-lint.js` | `arch-lint.test.js`（46） | 97% | 80% | ✅ 達成 |
+| `.claude/hooks/arch-lint.js` | `arch-lint.test.js`（46）、`arch-lint-status.test.js`（12） | 97% | 80% | ✅ 達成 |
 | `.claude/hooks/structure-test.js` | `structure-test.test.js`（32） | 86% | 80% | ✅ 達成 |
 | `.claude/hooks/quality-gate.js` | `quality-gate.test.js`（14） | 97% | 80% | ✅ 達成 |
 | `.claude/hooks/post-edit-typecheck.js` | `post-edit-typecheck.test.js`（5） | 97% | 80% | ✅ 達成 |
 | `.claude/hooks/pre-bash-git-push-reminder.js` | `hook-contract.test.js` | 100% | 80% | ✅ 達成 |
 | フックの入出力規約（ADR-005） | `hook-contract.test.js`（13） | — | — | ✅ 達成 |
-| `install.sh` (smoke test) | `install.test.js`（28） | — | — | ✅ 達成 |
+| `install.sh` (smoke test) | `install.test.js`（30） | — | — | ✅ 達成 |
 
-**合計: 138/138 テスト通過**
+**合計: 152/152 テスト通過**
 
 ### アーキテクチャ規則遵守 (100/100)
 

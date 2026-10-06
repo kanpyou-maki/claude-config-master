@@ -3,7 +3,7 @@
 **ステータス:** 承認済み  
 **作成日:** 2026-06-05  
 **関連 PRD:** [docs/prd.md](./prd.md)  
-**関連 ADR:** [ADR-001](./adr/ADR-001-knowledge-base-structure.md), [ADR-002](./adr/ADR-002-architecture-enforcement.md), [ADR-003](./adr/ADR-003-reviewer-agent-system.md), [ADR-005](./adr/ADR-005-hook-io-contract.md)
+**関連 ADR:** [ADR-001](./adr/ADR-001-knowledge-base-structure.md), [ADR-002](./adr/ADR-002-architecture-enforcement.md), [ADR-003](./adr/ADR-003-reviewer-agent-system.md), [ADR-004](./adr/ADR-004-isomorphic-distribution-layout.md), [ADR-005](./adr/ADR-005-hook-io-contract.md), [ADR-006](./adr/ADR-006-status-file-as-handoff-note.md)
 
 ---
 
@@ -52,7 +52,7 @@ Phase 5: エージェント強化
 claude-config-master/
 ├── CLAUDE.md                    # 地図（≤100行）
 ├── ARCHITECTURE.md              # ドメイン/パッケージ階層マップ
-├── PROJECT_STATUS.md            # プロジェクト状態
+├── PROJECT_STATUS.md            # 次のセッションへの引き継ぎメモ（6KB 以内）
 ├── docs/
 │   ├── prd.md                   # 製品要件
 │   ├── design.md                # 本ドキュメント
@@ -71,7 +71,7 @@ claude-config-master/
 ├── .claude/                     # 配布物の原本 = master 自身のハーネス（ADR-004: 同型レイアウト）
 │   ├── agents/                  # 開発サポート 7体 + レビュアー 6体
 │   ├── hooks/
-│   │   ├── arch-lint.js         # アーキテクチャリンタ（ARCH-001〜006）
+│   │   ├── arch-lint.js         # アーキテクチャリンタ（ARCH-NNN）
 │   │   ├── structure-test.js    # 構造テスト + 知識グラフ検証
 │   │   ├── quality-gate.js
 │   │   ├── pre-bash-git-push-reminder.js
@@ -299,7 +299,7 @@ claude-config-master/
 | エージェント | 審査観点 | 代表的な合否基準 |
 |-------------|---------|----------------|
 | `self-reviewer` | 実装者による批判的な自己評価 | 意図通りに動くか・見落としはないか |
-| `arch-reviewer` | アーキテクチャ規則（ARCH-001〜006）・依存方向 | 構造違反ゼロ |
+| `arch-reviewer` | アーキテクチャ規則（ARCH-NNN）・依存方向 | 構造違反ゼロ |
 | `style-reviewer` | コーディングスタイル・命名・ファイルサイズ・debug コード禁止 | 黄金原則 G-06〜G-09 クリア |
 | `security-reviewer` | OWASP Top 10・シークレット漏洩・認証/認可 | 重大脆弱性ゼロ |
 | `test-reviewer` | カバレッジ≥80%・テスト独立性・エッジケース | 閾値クリア |
