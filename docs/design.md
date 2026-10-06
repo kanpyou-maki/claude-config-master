@@ -88,7 +88,7 @@ claude-config-master/
 │   │   └── python-patterns/ python-testing/
 │   ├── settings.json
 │   └── harness.json             # コマンド定義（配布先では install.sh が言語別に生成）
-├── templates/                   # 配布用ルートテンプレート
+├── templates/                   # 配布用の雛形（ルートテンプレート・docs/friction-log.md）
 ├── dist-manifest.json           # 配布マニフェスト（配布対象・除外の唯一の定義）
 └── install.sh
 ```
