@@ -254,8 +254,9 @@ function checkArch006(filePath, root = process.cwd()) {
  * 制御文字（改行を含む）を空白に置き換え、長さを制限して 1 行に収める
  */
 function toSingleLine(text) {
-  const flat = String(text).replace(/\s*[\u0000-\u001f\u007f]+\s*/g, ' ');
-  return flat.length > MAX_FIELD_LENGTH ? `${flat.slice(0, MAX_FIELD_LENGTH)}…` : flat;
+  // 文字（コードポイント）単位で数える。UTF-16 の単位で切ると絵文字などが途中で割れる
+  const chars = Array.from(String(text).replace(/\s*[\u0000-\u001f\u007f]+\s*/g, ' '));
+  return chars.length > MAX_FIELD_LENGTH ? `${chars.slice(0, MAX_FIELD_LENGTH).join('')}…` : chars.join('');
 }
 
 function formatViolation(v) {

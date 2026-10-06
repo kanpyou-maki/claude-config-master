@@ -350,6 +350,12 @@ describe('formatViolation: モデルに渡すメッセージを 1 件 3 行に�
     assert.ok(formatted.length < 1000);
     assert.ok(formatted.includes('…'));
   });
+
+  test('切り詰める位置が絵文字の途中に当たっても文字を壊さない', () => {
+    const formatted = formatViolation({ ...violation, message: 'x'.repeat(299) + '😀'.repeat(10) });
+    // 対になっていない上位サロゲートが残っていないこと（Node 18 でも動く書き方）
+    assert.doesNotMatch(formatted, /[\ud800-\udbff](?![\udc00-\udfff])/);
+  });
 });
 
 // ─── runChecks ───────────────────────────────────────────────────────────────
