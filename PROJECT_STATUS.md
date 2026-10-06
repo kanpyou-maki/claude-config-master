@@ -1,70 +1,31 @@
 # プロジェクト状態
 
-> Claude Code が自律的に管理するファイル。タスク完了・フェーズ移行のたびに更新すること。
-> セッション開始時は必ずこのファイルを読んで状態を復元すること。
+> 次のセッションへの引き継ぎメモ。セッションの最初に読み、PR を作る前とセッションを閉じる前に書き換える。
+> 載せるのは下の 4 節だけ。追記せず、終わった項目は消す。上限は 6KB（ARCH-007）。
+> 決定は `docs/adr/` か設計書、知見は `docs/` の該当文書、繰り返すハマりどころは `docs/friction-log.md`、
+> タスク分解は `docs/exec-plans/active/` に書く。終わった作業は git log と PR が記録している。
 
 ## 現在のフェーズ
 
-<!-- 選択肢: 議論中 | ドキュメント作成中 | 実装中 | レビュー中 | メンテナンス中 | 完了 -->
-レビュー中
-
-## 概要
-
-配布可能な Claude Code ハーネス設定の原本（claude-config-master）。
-2026-10-06 のハーネスレビュー（vid-cut の使用実績の集計）を受けて、改善を順に進めている。
-1 本目（PR #7、ブランチ `improve/hooks-reach-model`）がレビュー待ち。内訳は「進行中」を参照。
-
-## 完了済み
-
-- [x] ハーネスエンジニアリング基盤（ARCH-001〜006・レビュアー体系・GC）
-- [x] 同型配布レイアウトへの再構成（`.claude/` 配下へ移動、ADR-004）
-- [x] dist-manifest.json による配布定義の一元化（golden-rules.md 配布漏れ解消）
-- [x] harness.json によるコマンドの言語非依存化（npm test ハードコード解消）
-- [x] 知識グラフ検証（structure-test.js checkDocGraph・孤立ドキュメント検出）
-- [x] ハーネス自己改善ループ（friction-log + improve-harness スキル）
-- [x] 双方向同期の強化（.claude/master-path・同型 diff 化した sync スキル）
-- [x] feat/harness-engineering のマージ（PR #1）と、vid-cut 発の改善の取り込み（PR #2〜#6）
+レビュー中。2026-10-06 のハーネスレビュー（vid-cut の使用実績の集計）を受けた改善の 2 本目。
 
 ## 進行中
 
-- [ ] `improve/hooks-reach-model` のレビュー・マージ（ADR-005 は「提案中」。承認ならマージ時に「承認済み」へ）
-  - フックの検出結果がモデルに届くようにした（終了コード 2 / `additionalContext`）
-  - 起動コマンドを `$CLAUDE_PROJECT_DIR` 起点にし、相対パスを ARCH-004 違反にした
-  - スキル 5 本に frontmatter を付け、structure-test で欠落を検出するようにした
-  - `quality-gate` は、整形ツールの設定があるプロジェクトだけを整形するようにした
-  - 摩擦ログの雛形を `templates/docs/` に分け、master 自身の摩擦を `docs/friction-log.md` に記録できるようにした（FRIC-001〜004）
-  - 違反メッセージの長さと改行を制限し、リンク検査が巨大な .md で遅くなる点を直した
+- ブランチ `improve/status-file-limit`（レビュー待ち）: 状態ファイルを引き継ぎメモに絞り、6KB に制限する（ARCH-007、ADR-006）
 
 ## 次にやること
 
-ハーネスレビューの残り。レビュアーの置き換え・状態ファイルの上限・エージェント等の削除の 3 つは、ADR-003（2 ステージ 6 エージェント）と配布物の構成を変えるので、ADR を起草して承認を得てから進める。
-
-- [ ] マージ後、配布先で `install.sh update` を実行し、表示される ARCH-004 の指示どおり `settings.json` の起動コマンドを書き換える（vid-cut から）
+- [ ] 配布先で `install.sh update` を実行し、最後に表示される違反を直す（vid-cut から）
+  - ARCH-004: `settings.json` の起動コマンドを `$CLAUDE_PROJECT_DIR` 起点に書き換える
+  - ARCH-007: 状態ファイルの中身を行き先へ振り分ける（vid-cut は 95KB）。配布先の `CLAUDE.md` の「タスク完了のたびに更新」も書き換える
 - [ ] Stage 1 の 3 レビュアー（arch / style / test。vid-cut で 72 回すべて PASS）を `harness.json` の `commands.verify` 1 本に置き換える
-- [ ] 状態ファイル（`PROJECT_STATUS.md` 等）に大きさの上限を設け、履歴を `docs/exec-plans/completed/` へ移す運用にする
 - [ ] 使われていないエージェント・スキル・rules の削除と、残すレビュアーのモデル指定の見直し
 - [ ] 文書どうしの食い違いの解消（行数の上限・フェーズの数・ADR ステータスの表記）
-- [ ] `quality-gate` は、整形ツールの設定があってもローカルに実体がないと `npx` がレジストリから取得して実行する。`npx --no-install` にするかを決める（security-reviewer の LOW 指摘。Biome・Prettier 共通で、以前からの挙動）
-- [ ] 300 行を超えたファイル（`arch-lint.js`・`structure-test.js`・一部のテスト）の分割（style-reviewer の MEDIUM 指摘）
+- [ ] 配布先の大きい文書（vid-cut の `docs/design.md` 107KB、`ARCHITECTURE.md` 70KB）の分割と索引の方針を決める
+- [ ] 300 行を超えたファイル（`arch-lint.js`・`structure-test.js`・一部のテスト）の分割
 - [ ] gc-agent の定期実行運用の開始
 
-## 決定事項
+## 人間待ち
 
-| # | 決定内容 | 理由 | ADR |
-|---|----------|------|-----|
-| 1 | CLAUDE.md は地図・詳細は docs/ | コンテキスト効率 | ADR-001 |
-| 2 | アーキテクチャ規則は機械的強制 | ドキュメントは腐敗する | ADR-002 |
-| 3 | 2ステージ6エージェントのレビューパイプライン | ゲートキーパー型の品質担保 | ADR-003 |
-| 4 | master を配布先と同一の `.claude/` レイアウトにする | パス齟齬の構造的解消・dogfooding | ADR-004 |
-| 5 | フックの検出結果は終了コード 2 でモデルに渡し、起動は `$CLAUDE_PROJECT_DIR` 起点にする（提案中） | 終了コード 0 の出力はモデルに届かず、相対パスはサブディレクトリで起動に失敗する | ADR-005 |
-
-## ブロッカー
-
-_なし_
-
-## メモ
-
-- 配布物の追加・除外は `dist-manifest.json` に宣言する（G-15）
-- エージェント・スキルはコマンドを `.claude/harness.json` から読む（G-14）
-- `docs/friction-log.md` は master 自身の摩擦ログ。配布されるのは `templates/docs/friction-log.md` の空の雛形（`dist-manifest.json` の `docsTemplates`）。記録ルールやエントリ形式を変えるときは両方を直す
-- `quality-gate` は Biome か Prettier の設定があるときだけ整形する。master には設定がないので整形されない
+- レビュアーの置き換えと、エージェント等の削除は、ADR-003（2 ステージ 6 エージェント）と配布物の構成を変える。着手前に ADR の承認が要る
+- `quality-gate` は、整形ツールの設定があってもローカルに実体がないと `npx` がレジストリから取得して実行する。`npx --no-install` に変えるかどうか（Biome・Prettier 共通で、以前からの挙動）

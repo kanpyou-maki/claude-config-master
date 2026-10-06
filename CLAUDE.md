@@ -18,7 +18,7 @@ master 自身が配布先と同一レイアウト（`.claude/` 配下）で動�
 | [docs/QUALITY_SCORE.md](./docs/QUALITY_SCORE.md) | 品質スコア・ギャップ追跡 |
 | [docs/PLANS.md](./docs/PLANS.md) | 実行プラン一覧 |
 | [docs/design-docs/core-beliefs.md](./docs/design-docs/core-beliefs.md) | コーディング原則・エージェントファースト設計思想 |
-| [PROJECT_STATUS.md](./PROJECT_STATUS.md) | 現在の進捗状態（毎回更新） |
+| [PROJECT_STATUS.md](./PROJECT_STATUS.md) | 次のセッションへの引き継ぎメモ（6KB 以内） |
 
 ## 開発ワークフロー
 
@@ -38,7 +38,7 @@ master 自身が配布先と同一レイアウト（`.claude/` 配下）で動�
 | ツール | 用途 |
 |--------|------|
 | `npm test` (= harness.json `commands.test`) | 全テスト実行 |
-| `node .claude/hooks/arch-lint.js` | ARCH-001〜006 検証 |
+| `node .claude/hooks/arch-lint.js` | ARCH-NNN 検証 |
 | `node .claude/hooks/structure-test.js` | 構造整合性・知識グラフ検証 |
 | `./install.sh [update] <lang> <target>` | 配布先への展開・更新 |
 | `gh pr create` / `gh pr list` | PR の作成・確認 |
@@ -65,7 +65,7 @@ PR 作成前に `.claude/skills/review-loop/SKILL.md` の手順で全員を通�
 | エージェント | ステージ | 審査観点 |
 |-------------|---------|---------|
 | `self-reviewer` | Stage 0 | 実装の自己批判的評価 |
-| `arch-reviewer` | Stage 1 | アーキテクチャ規則（ARCH-001〜006）|
+| `arch-reviewer` | Stage 1 | アーキテクチャ規則（ARCH-NNN）|
 | `style-reviewer` | Stage 1 | コーディングスタイル・命名・debug コード |
 | `test-reviewer` | Stage 1 | テストカバレッジ≥80%・独立性 |
 | `security-reviewer` | Stage 2 | OWASP Top 10・シークレット漏洩 |
@@ -80,4 +80,6 @@ PR 作成前に `.claude/skills/review-loop/SKILL.md` の手順で全員を通�
 
 ## プロジェクト状態管理
 
-`PROJECT_STATUS.md` をタスク完了・フェーズ移行のたびに更新すること。
+`PROJECT_STATUS.md` は次のセッションへの引き継ぎメモ。PR を作る前とセッションを閉じる前に書き換える（追記しない。終わった項目は消す）。
+載せるのは「現在のフェーズ・進行中・次にやること・人間待ち」だけで、上限は 6KB（ARCH-007）。
+決定・知見・履歴の置き場所は [ADR-006](./docs/adr/ADR-006-status-file-as-handoff-note.md) を参照。
