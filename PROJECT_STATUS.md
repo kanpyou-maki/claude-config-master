@@ -12,7 +12,7 @@
 
 ## 進行中
 
-- ブランチ `improve/status-file-limit`（レビュー待ち）: 状態ファイルを引き継ぎメモに絞り、6KB に制限する（ARCH-007、ADR-006）
+- PR #8（ブランチ `improve/status-file-limit`、レビュー待ち）: 状態ファイルを引き継ぎメモに絞り、6KB に制限する（ARCH-007、ADR-006）
 
 ## 次にやること
 
