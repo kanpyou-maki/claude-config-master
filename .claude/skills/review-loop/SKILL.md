@@ -18,6 +18,9 @@ description: 実装が終わってから PR を作る前に、レビュアーエ
 実装完了
   │
   ▼
+[準備] PROJECT_STATUS.md を書き換える
+  │
+  ▼
 [Stage 0] self-reviewer
   │ BLOCK ──→ 修正 ──→ Stage 0 に戻る
   │ PASS

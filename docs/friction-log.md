@@ -76,4 +76,3 @@
 - **根本原因の仮説:** ドキュメントの重複。規則の一覧が ARCHITECTURE.md と `arch-lint.js` にあるのに、範囲だけを各所に写していた
 - **改善候補:** 一覧以外の場所では範囲を書かず「ARCH-NNN」とする
 - **Status:** resolved (ADR-006 と同じ PR)
-

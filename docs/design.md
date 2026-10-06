@@ -126,6 +126,11 @@ claude-config-master/
 - `.claude/hooks/` 以外へのフック実装の配置（`.claude/` 配下のみ検査）
 - `.claude/rules/` の命名規則違反（`{lang}/{category}.md` 形式）
 - `settings.json` のフック参照が実ファイルと不整合、または起動コマンドが相対パス
+- `CLAUDE.md` が 100 行を超えている
+- `.md` の相対リンクの参照先が存在しない
+- `PROJECT_STATUS.md` が 6KB を超えている（ADR-006）
+
+規則の一覧は [ARCHITECTURE.md](../ARCHITECTURE.md) にある。
 
 **モデルへの伝え方**（ADR-005）: 違反は stderr に書いて終了コード 2 で終わる。終了コード 0 の出力はモデルに届かない。編集時は編集したファイルに関係する規則だけを報告し、ファイルを指定しない実行（`commands.archLint`）で全体を検査する。
 
@@ -311,6 +316,9 @@ claude-config-master/
 
 ```
 実装完了
+  │
+  ▼
+[準備] PROJECT_STATUS.md を書き換える（ADR-006）
   │
   ▼
 [Stage 0] self-reviewer
