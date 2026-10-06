@@ -21,7 +21,7 @@ master で書かれたパスは配布先でもそのまま成立する。配布�
 | `.claude/harness.json` | ハーネスコマンド定義【self 専用・配布先では生成】 | bootstrap / 人間 |
 | `dist-manifest.json` | 配布マニフェスト（配布対象・除外・言語別の唯一の定義） | improve-harness / 人間 |
 | `install.sh` | dist-manifest.json に従って target project へ配布 | TDD で追加 |
-| `templates/` | 配布用ルートテンプレート（CLAUDE.md 等の雛形） | 人間 / Claude |
+| `templates/` | 配布用の雛形（CLAUDE.md 等のルートテンプレート、`docs/friction-log.md`） | 人間 / Claude |
 | `docs/` | 知識ベース全体（一部は docsSkeleton として配布） | Claude / 人間 |
 | `docs/adr/` | アーキテクチャ決定レコード | `doc-updater` |
 | `docs/exec-plans/` | 実行プラン（active/ / completed/） | `planner` |
@@ -74,7 +74,8 @@ target/
 │   ├── harness.json    ← 言語別に生成（テスト等のコマンド定義）
 │   └── master-path     ← master の場所（双方向同期用）
 ├── CLAUDE.md 等        ← templates/ から（既存なら保持）
-└── docs/               ← docsSkeleton（golden-rules.md・friction-log.md 等）
+└── docs/               ← docsSkeleton（golden-rules.md 等。master と同じ内容）
+                          docsTemplates（friction-log.md。templates/docs/ の空の雛形）
 ```
 
 改善の還流: プロジェクト → `sync-upstream` → master → `install.sh update` / `sync-downstream` → 全プロジェクト

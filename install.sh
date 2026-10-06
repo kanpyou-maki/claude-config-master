@@ -299,10 +299,15 @@ else
     fi
   }
 
-  # manifest に列挙された docs ファイル（golden-rules.md・friction-log.md 等）
+  # manifest に列挙された docs ファイル（golden-rules.md 等。master と同じ内容で配布する）
   while IFS= read -r doc; do
     [[ -n "$doc" ]] && copy_if_missing "$SCRIPT_DIR/$doc" "$TARGET/$doc"
   done < <(mlist "m.docsSkeleton")
+
+  # プロジェクトごとに中身が育つ docs（friction-log.md 等）は、master 自身の内容ではなく雛形から配布する
+  while IFS= read -r doc; do
+    [[ -n "$doc" ]] && copy_if_missing "$SCRIPT_DIR/$(mget "m.docsTemplates['$doc']")" "$TARGET/$doc"
+  done < <(mkeys "m.docsTemplates")
 
   # QUALITY_SCORE.md: 空のスキャフォールドを生成
   QUALITY_DEST="$DOCS_DEST/QUALITY_SCORE.md"

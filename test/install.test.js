@@ -199,6 +199,29 @@ describe('install.sh: typescript インストールの smoke test', () => {
     }
   });
 
+  test('manifest の docsTemplates は雛形の内容で配布される', () => {
+    const entries = Object.entries(MANIFEST.docsTemplates);
+    assert.ok(entries.length > 0, 'docsTemplates が空');
+    for (const [dest, src] of entries) {
+      assert.equal(
+        fs.readFileSync(path.join(tmpDir, dest), 'utf8'),
+        fs.readFileSync(path.join(ROOT, src), 'utf8'),
+        `${dest} が ${src} と一致しない`
+      );
+    }
+  });
+
+  test('摩擦ログは空の雛形で配布され、master 自身のエントリを含まない', () => {
+    const installed = fs.readFileSync(path.join(tmpDir, 'docs', 'friction-log.md'), 'utf8');
+    assert.ok(installed.includes('## エントリ形式'), '記録ルールとエントリ形式がない');
+    assert.doesNotMatch(installed, /^### FRIC-\d+/m);
+  });
+
+  test('master の摩擦ログと雛形は、記録ルールとエントリ形式（「## エントリ」より前）が一致する', () => {
+    const head = file => fs.readFileSync(path.join(ROOT, file), 'utf8').split('\n## エントリ\n')[0];
+    assert.equal(head('docs/friction-log.md'), head('templates/docs/friction-log.md'));
+  });
+
   test('生成ファイル（QUALITY_SCORE.md / PLANS.md）が存在する', () => {
     for (const p of ['docs/QUALITY_SCORE.md', 'docs/PLANS.md']) {
       assert.ok(fs.existsSync(path.join(tmpDir, p)), `${p} が存在しない`);

@@ -26,11 +26,13 @@
   },
   "docsSkeleton": [
     "docs/golden-rules.md",
-    "docs/friction-log.md",
     "docs/design-docs/core-beliefs.md",
     "docs/references/doc-templates.md",
     "docs/exec-plans/active/_template.md"
   ],
+  "docsTemplates": {
+    "docs/friction-log.md": "templates/docs/friction-log.md"
+  },
   "rootTemplates": {
     "CLAUDE.md": "templates/CLAUDE.md",
     "ARCHITECTURE.md": "templates/ARCHITECTURE.md",
